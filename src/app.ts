@@ -114,12 +114,16 @@ export async function startServer(): Promise<void> {
   try {
     console.log('🔄 Starting server...');
     
-    // Ensure database connection (reconnect if needed)
-    try {
-      await connectDatabase();
-      console.log('✅ Database connection established');
-    } catch (dbError) {
-      console.warn('⚠️  Database connection warning:', dbError);
+    // In production, assume database is already connected from migration
+    if (config.nodeEnv !== 'production') {
+      try {
+        await connectDatabase();
+        console.log('✅ Database connection established');
+      } catch (dbError) {
+        console.warn('⚠️  Database connection warning:', dbError);
+      }
+    } else {
+      console.log('🔗 Using existing database connection from migration');
     }
     
     // Railway simple port setup
