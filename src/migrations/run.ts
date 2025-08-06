@@ -94,13 +94,24 @@ async function runMigrations(): Promise<void> {
             throw new Error(`Migration file not found at ${distPath} or ${srcPath}`);
           }
         })()
+      },
+      {
+        id: '002',
+        filename: '002_user_auth_tables.sql',
+        sql: (() => {
+          // Try dist directory first, then src directory
+          const distPath = join(__dirname, '002_user_auth_tables.sql');
+          const srcPath = join(__dirname, '../../src/migrations/002_user_auth_tables.sql');
+          
+          if (existsSync(distPath)) {
+            return readFileSync(distPath, 'utf8');
+          } else if (existsSync(srcPath)) {
+            return readFileSync(srcPath, 'utf8');
+          } else {
+            throw new Error(`Migration file not found at ${distPath} or ${srcPath}`);
+          }
+        })()
       }
-      // Add new migrations here as needed
-      // {
-      //   id: '002',
-      //   filename: '002_add_promotions_table.sql',
-      //   sql: readFileSync(join(__dirname, '002_add_promotions_table.sql'), 'utf8')
-      // }
     ];
     
     // Execute pending migrations
@@ -142,7 +153,7 @@ export async function checkMigrationStatus(): Promise<{ upToDate: boolean; pendi
     await createMigrationsTable();
     
     const executedMigrations = await getExecutedMigrations();
-    const totalMigrations = 1; // Update this when adding new migrations
+    const totalMigrations = 2; // Update this when adding new migrations
     
     return {
       upToDate: executedMigrations.length >= totalMigrations,

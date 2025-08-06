@@ -6,6 +6,7 @@ import helmet from 'helmet';
 import config from './config/environment';
 import { connectDatabase } from './config/database';
 import orderRoutes from './routes/orders';
+import authRoutes from './routes/auth';
 
 // Create Express app
 const app: Application = express();
@@ -47,6 +48,7 @@ app.get('/health', (_req: Request, res: Response) => {
 
 // API routes
 app.use('/api/orders', orderRoutes);
+app.use('/api/auth', authRoutes);
 
 // Migration endpoint (for Railway deployment)
 app.post('/migrate', async (_req: Request, res: Response) => {
