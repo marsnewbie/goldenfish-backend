@@ -240,7 +240,7 @@ export class OrderController {
   /**
    * GET /api/orders/stats - Get order statistics (admin)
    */
-  static async getOrderStats(req: Request, res: Response): Promise<void> {
+  static async getOrderStats(_req: Request, res: Response): Promise<void> {
     try {
       const stats = await OrderService.getOrderStats();
       

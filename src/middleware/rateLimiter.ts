@@ -92,7 +92,7 @@ function createRateLimiterMiddleware(limiter: RateLimiterRedis | RateLimiterMemo
 }
 
 // Export middleware functions
-rateLimiter.orderCreation = createRateLimiterMiddleware(rateLimiter.orderCreation);
-rateLimiter.orderLookup = createRateLimiterMiddleware(rateLimiter.orderLookup);
-rateLimiter.standard = createRateLimiterMiddleware(rateLimiter.standard);
-rateLimiter.admin = createRateLimiterMiddleware(rateLimiter.admin);
+export const orderCreationLimiter = createRateLimiterMiddleware(rateLimiter.orderCreation);
+export const orderLookupLimiter = createRateLimiterMiddleware(rateLimiter.orderLookup);
+export const standardLimiter = createRateLimiterMiddleware(rateLimiter.standard);
+export const adminLimiter = createRateLimiterMiddleware(rateLimiter.admin);

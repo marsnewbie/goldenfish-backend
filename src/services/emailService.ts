@@ -136,7 +136,7 @@ export class EmailService {
         });
 
         optionsText = Object.entries(item.selectedOptions)
-          .map(([group, choice]) => {
+          .map(([_group, choice]) => {
             if (Array.isArray(choice)) {
               return choice.map((c: any) => c.name).join(', ');
             }
