@@ -127,12 +127,10 @@ async function runMigrations(): Promise<void> {
     console.error('❌ Database migration failed:', error);
     process.exit(1);
   } finally {
-    // In Railway production, don't close DB connection to avoid breaking subsequent server startup
-    // Only close when explicitly running migration as standalone command
-    if (require.main === module && process.env.NODE_ENV !== 'production') {
+    // Close database connection when running as standalone script
+    if (require.main === module) {
       await db.end();
-    } else if (require.main === module && process.env.NODE_ENV === 'production') {
-      console.log('🔗 Keeping database connection open for server startup');
+      console.log('🔌 Database connections closed');
     }
   }
 }
