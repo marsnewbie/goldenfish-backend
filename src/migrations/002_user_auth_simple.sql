@@ -22,10 +22,10 @@ CREATE INDEX IF NOT EXISTS idx_user_addresses_user_id ON user_addresses(user_id)
 CREATE INDEX IF NOT EXISTS idx_users_email_status ON users(email, status);
 
 -- Create a test user (password: test123)
--- Hash: $2a$12$rMaFzFz7qQq5rNgZJ7cFl.wJ8rV5x5XzKd5pXJ9Zq5pqZrTlrOxkG
+-- Hash: $2a$12$5Kv0nFKVlNr.MsQWLTYDveUIGGExPXe8wO5PSx7KULVQA9a1QZyJW
 INSERT INTO users (email, password_hash, first_name, last_name, phone, user_type, status) 
 VALUES (
     'test@goldenfish.co.uk',
-    '$2a$12$rMaFzFz7qQq5rNgZJ7cFl.wJ8rV5x5XzKd5pXJ9Zq5pqZrTlrOxkG',
+    '$2a$12$5Kv0nFKVlNr.MsQWLTYDveUIGGExPXe8wO5PSx7KULVQA9a1QZyJW',
     'Test', 'User', '01904123456', 'registered', 'active'
 ) ON CONFLICT (email) DO NOTHING;

@@ -111,6 +111,23 @@ async function runMigrations(): Promise<void> {
             throw new Error(`Migration file not found at ${distPath} or ${srcPath}`);
           }
         })()
+      },
+      {
+        id: '003',
+        filename: '003_fix_test_user.sql',
+        sql: (() => {
+          // Try dist directory first, then src directory
+          const distPath = join(__dirname, '003_fix_test_user.sql');
+          const srcPath = join(__dirname, '../../src/migrations/003_fix_test_user.sql');
+          
+          if (existsSync(distPath)) {
+            return readFileSync(distPath, 'utf8');
+          } else if (existsSync(srcPath)) {
+            return readFileSync(srcPath, 'utf8');
+          } else {
+            throw new Error(`Migration file not found at ${distPath} or ${srcPath}`);
+          }
+        })()
       }
     ];
     
@@ -153,7 +170,7 @@ export async function checkMigrationStatus(): Promise<{ upToDate: boolean; pendi
     await createMigrationsTable();
     
     const executedMigrations = await getExecutedMigrations();
-    const totalMigrations = 2; // Update this when adding new migrations
+    const totalMigrations = 3; // Update this when adding new migrations
     
     return {
       upToDate: executedMigrations.length >= totalMigrations,
