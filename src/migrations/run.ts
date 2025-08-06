@@ -97,11 +97,11 @@ async function runMigrations(): Promise<void> {
       },
       {
         id: '002',
-        filename: '002_user_auth_tables.sql',
+        filename: '002_user_auth_simple.sql',
         sql: (() => {
           // Try dist directory first, then src directory
-          const distPath = join(__dirname, '002_user_auth_tables.sql');
-          const srcPath = join(__dirname, '../../src/migrations/002_user_auth_tables.sql');
+          const distPath = join(__dirname, '002_user_auth_simple.sql');
+          const srcPath = join(__dirname, '../../src/migrations/002_user_auth_simple.sql');
           
           if (existsSync(distPath)) {
             return readFileSync(distPath, 'utf8');
