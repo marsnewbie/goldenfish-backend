@@ -1,10 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
 import { RateLimiterRedis, RateLimiterMemory } from 'rate-limiter-flexible';
 import { redis } from '../config/database';
-import config from '../config/environment';
+// import config from '../config/environment'; // Not needed currently
 
-// Use Redis for rate limiting in production, memory for development
-const useRedis = config.nodeEnv === 'production';
+// Temporarily use memory for rate limiting due to Redis compatibility issues
+const useRedis = false; // TODO: Fix Redis compatibility with rate-limiter-flexible
 
 const rateLimiterOptions = {
   storeClient: useRedis ? redis : undefined,
