@@ -1,4 +1,4 @@
-import { readFileSync } from 'fs';
+import { readFileSync, existsSync } from 'fs';
 import { join } from 'path';
 import { db, connectDatabase } from '../config/database';
 import config from '../config/environment';
@@ -81,7 +81,19 @@ async function runMigrations(): Promise<void> {
       {
         id: '001',
         filename: '001_initial_schema.sql',
-        sql: readFileSync(join(__dirname, '001_initial_schema.sql'), 'utf8')
+        sql: (() => {
+          // Try dist directory first, then src directory
+          const distPath = join(__dirname, '001_initial_schema.sql');
+          const srcPath = join(__dirname, '../../src/migrations/001_initial_schema.sql');
+          
+          if (existsSync(distPath)) {
+            return readFileSync(distPath, 'utf8');
+          } else if (existsSync(srcPath)) {
+            return readFileSync(srcPath, 'utf8');
+          } else {
+            throw new Error(`Migration file not found at ${distPath} or ${srcPath}`);
+          }
+        })()
       }
       // Add new migrations here as needed
       // {

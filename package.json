@@ -4,7 +4,7 @@
   "description": "Golden Fish Restaurant Order Management API",
   "main": "dist/app.js",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && cp -r src/migrations/*.sql dist/migrations/",
     "start": "npm run migrate:production && node dist/app.js",
     "migrate:production": "node dist/migrations/run.js || true",
     "dev": "ts-node-dev --respawn --transpile-only src/app.ts",
