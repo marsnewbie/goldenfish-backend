@@ -4,7 +4,7 @@ import helmet from 'helmet';
 // import { Server as SocketIOServer } from 'socket.io'; // Removed for Railway simplicity
 // import { createServer } from 'http'; // Removed for Railway simplicity
 import config from './config/environment';
-// import { connectDatabase } from './config/database'; // Not needed - migration handles connection
+import { connectDatabase } from './config/database';
 import orderRoutes from './routes/orders';
 
 // Create Express app
@@ -113,6 +113,14 @@ process.on('SIGINT', () => {
 export async function startServer(): Promise<void> {
   try {
     console.log('🔄 Starting server...');
+    
+    // Ensure database connection (reconnect if needed)
+    try {
+      await connectDatabase();
+      console.log('✅ Database connection established');
+    } catch (dbError) {
+      console.warn('⚠️  Database connection warning:', dbError);
+    }
     
     // Railway simple port setup
     const port = process.env.PORT || 3000;
