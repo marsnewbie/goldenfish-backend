@@ -151,8 +151,8 @@ async function startServer(): Promise<void> {
     // Connect to databases
     await connectDatabase();
     
-    // Start HTTP server
-    httpServer.listen(config.port, () => {
+    // Start HTTP server (bind to all interfaces for Railway)
+    httpServer.listen(config.port, '0.0.0.0', () => {
       console.log('🚀 Golden Fish API Server started');
       console.log(`📍 Server running on port ${config.port}`);
       console.log(`🌍 Environment: ${config.nodeEnv}`);
