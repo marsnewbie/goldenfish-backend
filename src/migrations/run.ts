@@ -127,8 +127,11 @@ async function runMigrations(): Promise<void> {
     console.error('❌ Database migration failed:', error);
     process.exit(1);
   } finally {
-    // Close database connection
-    await db.end();
+    // Only close database connection if running as standalone script
+    // In production startup, leave connection open for the main app
+    if (require.main === module) {
+      await db.end();
+    }
   }
 }
 
