@@ -56,6 +56,18 @@ app.get('/health', (_req: Request, res: Response) => {
 // API routes
 app.use('/api/orders', orderRoutes);
 
+// Migration endpoint (for Railway deployment)
+app.post('/migrate', async (_req: Request, res: Response) => {
+  try {
+    const { runMigrations } = await import('./migrations/run');
+    await runMigrations();
+    res.json({ success: true, message: 'Database migrations completed successfully' });
+  } catch (error) {
+    console.error('Migration failed:', error);
+    res.status(500).json({ success: false, error: 'Migration failed', details: error instanceof Error ? error.message : 'Unknown error' });
+  }
+});
+
 // Root endpoint
 app.get('/', (_req: Request, res: Response) => {
   res.json({
