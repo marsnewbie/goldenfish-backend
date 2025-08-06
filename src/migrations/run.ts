@@ -128,6 +128,23 @@ async function runMigrations(): Promise<void> {
             throw new Error(`Migration file not found at ${distPath} or ${srcPath}`);
           }
         })()
+      },
+      {
+        id: '004',
+        filename: '004_add_last_login.sql',
+        sql: (() => {
+          // Try dist directory first, then src directory
+          const distPath = join(__dirname, '004_add_last_login.sql');
+          const srcPath = join(__dirname, '../../src/migrations/004_add_last_login.sql');
+          
+          if (existsSync(distPath)) {
+            return readFileSync(distPath, 'utf8');
+          } else if (existsSync(srcPath)) {
+            return readFileSync(srcPath, 'utf8');
+          } else {
+            throw new Error(`Migration file not found at ${distPath} or ${srcPath}`);
+          }
+        })()
       }
     ];
     
@@ -170,7 +187,7 @@ export async function checkMigrationStatus(): Promise<{ upToDate: boolean; pendi
     await createMigrationsTable();
     
     const executedMigrations = await getExecutedMigrations();
-    const totalMigrations = 3; // Update this when adding new migrations
+    const totalMigrations = 4; // Update this when adding new migrations
     
     return {
       upToDate: executedMigrations.length >= totalMigrations,
