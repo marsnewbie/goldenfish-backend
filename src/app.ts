@@ -1,23 +1,15 @@
 import express, { Application, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import { Server as SocketIOServer } from 'socket.io';
-import { createServer } from 'http';
+// import { Server as SocketIOServer } from 'socket.io'; // Removed for Railway simplicity
+// import { createServer } from 'http'; // Removed for Railway simplicity
 import config from './config/environment';
 import { connectDatabase } from './config/database';
 import orderRoutes from './routes/orders';
 
 // Create Express app
 const app: Application = express();
-const httpServer = createServer(app);
-
-// Initialize Socket.IO
-const io = new SocketIOServer(httpServer, {
-  cors: {
-    origin: config.corsOrigins,
-    methods: ["GET", "POST", "PUT", "DELETE"]
-  }
-});
+// Simplified for Railway - removed Socket.IO
 
 // Security middleware
 app.use(helmet({
@@ -82,29 +74,7 @@ app.get('/', (_req: Request, res: Response) => {
   });
 });
 
-// Socket.IO for real-time order updates
-io.on('connection', (socket) => {
-  console.log('🔌 Client connected:', socket.id);
-  
-  // Join order tracking room
-  socket.on('track_order', (orderNumber: string) => {
-    socket.join(`order_${orderNumber}`);
-    console.log(`👀 Client ${socket.id} tracking order: ${orderNumber}`);
-  });
-  
-  // Join admin room for all order updates
-  socket.on('join_admin', () => {
-    socket.join('admin');
-    console.log(`👨‍💼 Admin client joined: ${socket.id}`);
-  });
-  
-  socket.on('disconnect', () => {
-    console.log('🔌 Client disconnected:', socket.id);
-  });
-});
-
-// Store io instance globally for use in services
-(global as any).io = io;
+// Real-time features removed for Railway simplicity
 
 // 404 handler
 app.use('*', (req: Request, res: Response) => {
@@ -128,21 +98,15 @@ app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
   });
 });
 
-// Graceful shutdown handler
+// Graceful shutdown handler (simplified for Railway)
 process.on('SIGTERM', () => {
   console.log('🛑 SIGTERM received, shutting down gracefully...');
-  httpServer.close(() => {
-    console.log('✅ Server closed');
-    process.exit(0);
-  });
+  process.exit(0);
 });
 
 process.on('SIGINT', () => {
   console.log('🛑 SIGINT received, shutting down gracefully...');
-  httpServer.close(() => {
-    console.log('✅ Server closed');
-    process.exit(0);
-  });
+  process.exit(0);
 });
 
 // Start server
@@ -151,14 +115,11 @@ async function startServer(): Promise<void> {
     // Connect to databases
     await connectDatabase();
     
-    // Start HTTP server (bind to all interfaces for Railway)
-    httpServer.listen(config.port, '0.0.0.0', () => {
-      console.log('🚀 Golden Fish API Server started');
-      console.log(`📍 Server running on port ${config.port}`);
-      console.log(`🌍 Environment: ${config.nodeEnv}`);
-      console.log(`📧 Email service: ${config.emailFrom}`);
-      console.log(`🔗 CORS origins: ${config.corsOrigins.join(', ')}`);
-      console.log(`⚡ Socket.IO enabled for real-time updates`);
+    // Railway simple port setup
+    const port = process.env.PORT || 3000;
+    app.listen(port, () => {
+      console.log(`🚀 Golden Fish API Server started`);
+      console.log(`📍 Listening on port ${port}`);
       
       if (config.nodeEnv === 'development') {
         console.log(`🔗 API available at: http://localhost:${config.port}`);
@@ -174,31 +135,15 @@ async function startServer(): Promise<void> {
 }
 
 // Export for testing
-export { app, io };
+export { app };
 
 // Start server if not in test environment
 if (require.main === module) {
   startServer();
 }
 
-// Utility function to broadcast order updates
-export function broadcastOrderUpdate(orderNumber: string, status: string, data: any): void {
-  if ((global as any).io) {
-    // Notify customer tracking this order
-    (global as any).io.to(`order_${orderNumber}`).emit('order_update', {
-      orderNumber,
-      status,
-      ...data
-    });
-    
-    // Notify admin dashboard
-    (global as any).io.to('admin').emit('admin_order_update', {
-      orderNumber,
-      status,
-      ...data,
-      timestamp: new Date().toISOString()
-    });
-    
-    console.log(`📢 Broadcasted order update: ${orderNumber} -> ${status}`);
-  }
+// Utility function to broadcast order updates (simplified)
+export function broadcastOrderUpdate(orderNumber: string, status: string, _data: any): void {
+  console.log(`📢 Order update: ${orderNumber} -> ${status}`);
+  // Real-time features removed for Railway simplicity
 }
