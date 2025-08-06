@@ -90,7 +90,7 @@ router.post('/signin', standardLimiter, async (req: Request, res: Response) => {
 
     // Get user's saved addresses
     const addressesResult = await db.query(
-      `SELECT id, street, city, postcode, instructions, is_default
+      `SELECT id, street, city, postcode, is_default
        FROM user_addresses 
        WHERE user_id = $1
        ORDER BY is_default DESC, created_at DESC`,
@@ -110,7 +110,6 @@ router.post('/signin', standardLimiter, async (req: Request, res: Response) => {
         street: addr.street,
         city: addr.city,
         postcode: addr.postcode,
-        instructions: addr.instructions,
         isDefault: addr.is_default
       }))
     };
