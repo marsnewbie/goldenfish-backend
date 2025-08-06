@@ -39,7 +39,7 @@ const createOrderSchema = Joi.object({
     otherwise: Joi.forbidden()
   }),
   
-  specialInstructions: Joi.string().max(500).optional(),
+  specialInstructions: Joi.string().max(500).allow('').optional(),
   paymentMethod: Joi.string().valid('card', 'cash', 'paypal').required(),
   
   totals: Joi.object({
