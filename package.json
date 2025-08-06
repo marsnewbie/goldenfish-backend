@@ -2,10 +2,10 @@
   "name": "goldenfish-backend",
   "version": "1.0.0",
   "description": "Golden Fish Restaurant Order Management API",
-  "main": "dist/app.js",
+  "main": "dist/server.js",
   "scripts": {
     "build": "tsc && cp -r src/migrations/*.sql dist/migrations/",
-    "start": "npm run migrate:production && node dist/app.js",
+    "start": "npm run migrate:production && node dist/server.js",
     "migrate:production": "node dist/migrations/run.js || true",
     "dev": "ts-node-dev --respawn --transpile-only src/app.ts",
     "migrate": "node dist/migrations/run.js",

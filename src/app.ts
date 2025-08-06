@@ -110,7 +110,7 @@ process.on('SIGINT', () => {
 });
 
 // Start server
-async function startServer(): Promise<void> {
+export async function startServer(): Promise<void> {
   try {
     // Connect to databases
     await connectDatabase();
@@ -134,13 +134,8 @@ async function startServer(): Promise<void> {
   }
 }
 
-// Export for testing
+// Export for testing and external usage
 export { app };
-
-// Start server if not in test environment
-if (require.main === module) {
-  startServer();
-}
 
 // Utility function to broadcast order updates (simplified)
 export function broadcastOrderUpdate(orderNumber: string, status: string, _data: any): void {
