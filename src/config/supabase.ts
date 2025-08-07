@@ -45,90 +45,79 @@ export async function verifyUserToken(token: string) {
 }
 
 /**
- * Get user profile with tenant information
+ * Simplified user profile - no database dependencies
+ * Returns mock data for single restaurant setup
  */
 export async function getUserProfile(userId: string) {
   try {
-    // Get user profile
-    const { data: profile, error: profileError } = await supabase
-      .from('user_profiles')
-      .select('*')
-      .eq('id', userId)
-      .single();
+    console.log('🔍 Getting simplified user profile for:', userId);
 
-    if (profileError) {
-      throw profileError;
-    }
+    // Return mock profile data for single restaurant
+    const mockProfile = {
+      id: userId,
+      first_name: null,
+      last_name: null,
+      auth_method: 'magic_link',
+      last_sign_in_at: new Date().toISOString(),
+      sign_in_count: 1
+    };
 
-    // Get user tenants
-    const { data: userTenants, error: tenantsError } = await supabase
-      .from('user_tenants')
-      .select(`
-        tenant_id,
-        role,
-        tenants (
-          id,
-          name,
-          slug,
-          type,
-          settings
-        )
-      `)
-      .eq('user_id', userId)
-      .eq('status', 'active');
-
-    if (tenantsError) {
-      throw tenantsError;
-    }
+    const mockTenant = {
+      id: 'golden-fish-default',
+      name: 'Golden Fish',
+      slug: 'golden-fish',
+      type: 'restaurant'
+    };
 
     return {
-      profile,
-      tenants: userTenants || [],
-      currentTenant: userTenants?.[0]?.tenants || null
+      profile: mockProfile,
+      tenants: [{ tenants: mockTenant, role: 'customer' }],
+      currentTenant: mockTenant
     };
   } catch (error) {
-    console.error('Error getting user profile:', error);
-    throw error;
+    console.error('Error in simplified user profile:', error);
+    // Return basic structure even on error
+    return {
+      profile: { id: userId },
+      tenants: [],
+      currentTenant: null
+    };
   }
 }
 
 /**
- * Create user profile if it doesn't exist
+ * Simplified user profile handling - no database dependencies
+ * Just log user info for debugging
  */
 export async function ensureUserProfile(user: any) {
   try {
-    const { data: existingProfile } = await supabase
-      .from('user_profiles')
-      .select('id')
-      .eq('id', user.id)
-      .single();
+    // Simplified approach - just log the user and return basic info
+    console.log('✅ User authenticated:', {
+      id: user.id,
+      email: user.email,
+      auth_method: getAuthMethod(user)
+    });
 
-    if (existingProfile) {
-      return existingProfile;
-    }
-
-    // Create new profile
-    const { data: newProfile, error } = await supabase
-      .from('user_profiles')
-      .insert({
-        id: user.id,
-        first_name: user.user_metadata?.first_name,
-        last_name: user.user_metadata?.last_name,
-        auth_method: getAuthMethod(user),
-        last_sign_in_at: new Date().toISOString(),
-        sign_in_count: 1
-      })
-      .select()
-      .single();
-
-    if (error) {
-      throw error;
-    }
-
-    return newProfile;
+    // Return mock profile data to maintain API compatibility
+    return {
+      id: user.id,
+      first_name: user.user_metadata?.first_name || null,
+      last_name: user.user_metadata?.last_name || null,
+      auth_method: getAuthMethod(user),
+      last_sign_in_at: new Date().toISOString(),
+      sign_in_count: 1
+    };
   } catch (error) {
-    console.error('Error ensuring user profile:', error);
-    throw error;
+    console.error('Error in simplified user profile:', error);
+    // Don't throw error - just return basic user info
+    return {
+      id: user.id,
+      first_name: null,
+      last_name: null,
+      auth_method: 'unknown',
+      last_sign_in_at: new Date().toISOString(),
+      sign_in_count: 1
+    };
   }
 }
 
