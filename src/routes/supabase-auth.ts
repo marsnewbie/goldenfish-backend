@@ -7,15 +7,16 @@ const router = Router();
 /**
  * Middleware to verify Supabase JWT token
  */
-async function verifySupabaseAuth(req: Request, res: Response, next: Function): Promise<any> {
+async function verifySupabaseAuth(req: Request, res: Response, next: Function) {
   try {
     const token = req.headers.authorization?.replace('Bearer ', '');
     
     if (!token) {
-      return res.status(401).json({
+      res.status(401).json({
         success: false,
         error: 'No token provided'
       });
+      return;
     }
 
     // Verify token with Supabase
@@ -27,11 +28,12 @@ async function verifySupabaseAuth(req: Request, res: Response, next: Function): 
     
   } catch (error) {
     console.error('❌ Supabase token verification error:', error);
-    return res.status(401).json({
+    res.status(401).json({
       success: false,
       error: 'Invalid token',
       message: 'Authentication failed'
     });
+    return;
   }
 }
 
