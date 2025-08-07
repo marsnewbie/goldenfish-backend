@@ -7,7 +7,7 @@ const router = Router();
 /**
  * Middleware to verify Supabase JWT token
  */
-async function verifySupabaseAuth(req: Request, res: Response, next: Function): Promise<void> {
+async function verifySupabaseAuth(req: Request, res: Response, next: Function): Promise<any> {
   try {
     const token = req.headers.authorization?.replace('Bearer ', '');
     
