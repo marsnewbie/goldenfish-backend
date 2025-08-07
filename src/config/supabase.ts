@@ -30,12 +30,16 @@ export async function verifyUserToken(token: string) {
     const { data: { user }, error } = await supabase.auth.getUser(token);
     
     if (error || !user) {
+      // Don't log errors for expected invalid tokens to reduce noise
       throw new Error('Invalid token');
     }
     
     return user;
   } catch (error) {
-    console.error('Token verification failed:', error);
+    // Only log unexpected errors, not authentication failures
+    if ((error as Error).message !== 'Invalid token') {
+      console.error('⚠️ Unexpected token verification error:', error);
+    }
     throw new Error('Authentication failed');
   }
 }

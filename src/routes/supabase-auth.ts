@@ -27,7 +27,7 @@ async function verifySupabaseAuth(req: Request, res: Response, next: Function) {
     next();
     
   } catch (error) {
-    console.error('❌ Supabase token verification error:', error);
+    // Don't log expected authentication failures to reduce log noise
     res.status(401).json({
       success: false,
       error: 'Invalid token',
