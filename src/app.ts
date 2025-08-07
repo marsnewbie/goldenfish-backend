@@ -4,7 +4,7 @@ import helmet from 'helmet';
 // import { Server as SocketIOServer } from 'socket.io'; // Removed for Railway simplicity
 // import { createServer } from 'http'; // Removed for Railway simplicity
 import config from './config/environment';
-import { connectDatabase } from './config/database';
+// import { connectDatabase } from './config/database'; // Now using Supabase client
 import orderRoutes from './routes/orders';
 import authRoutes from './routes/auth';
 import supabaseAuthRoutes from './routes/supabase-auth';
@@ -118,8 +118,8 @@ export async function startServer(): Promise<void> {
   try {
     console.log('🔄 Starting server...');
     
-    // Connect to databases
-    await connectDatabase();
+    // Using Supabase client - no need for manual database connection
+    console.log('✅ Using Supabase client for database operations');
     
     // Railway simple port setup
     const port = process.env.PORT || 3000;
