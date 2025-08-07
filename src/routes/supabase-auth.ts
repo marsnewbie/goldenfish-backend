@@ -7,7 +7,7 @@ const router = Router();
 /**
  * Middleware to verify Supabase JWT token
  */
-async function verifySupabaseAuth(req: Request, res: Response, next: Function) {
+async function verifySupabaseAuth(req: Request, res: Response, next: Function): Promise<void> {
   try {
     const token = req.headers.authorization?.replace('Bearer ', '');
     
@@ -68,10 +68,10 @@ router.get('/profile', standardLimiter, verifySupabaseAuth, async (req: Request,
           authMethod: profileData.profile?.auth_method
         },
         tenant: profileData.currentTenant,
-        tenants: profileData.tenants.map(ut => ({
-          id: ut.tenants.id,
-          name: ut.tenants.name,
-          slug: ut.tenants.slug,
+        tenants: profileData.tenants.map((ut: any) => ({
+          id: ut.tenants?.id,
+          name: ut.tenants?.name,
+          slug: ut.tenants?.slug,
           role: ut.role
         }))
       }
