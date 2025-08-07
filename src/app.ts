@@ -7,6 +7,7 @@ import config from './config/environment';
 import { connectDatabase } from './config/database';
 import orderRoutes from './routes/orders';
 import authRoutes from './routes/auth';
+import supabaseAuthRoutes from './routes/supabase-auth';
 
 // Create Express app
 const app: Application = express();
@@ -48,7 +49,8 @@ app.get('/health', (_req: Request, res: Response) => {
 
 // API routes
 app.use('/api/orders', orderRoutes);
-app.use('/api/auth', authRoutes);
+app.use('/api/auth', supabaseAuthRoutes); // Modern Supabase auth routes
+app.use('/api/legacy-auth', authRoutes); // Legacy auth for backward compatibility
 
 // Migration endpoint (for Railway deployment)
 app.post('/migrate', async (_req: Request, res: Response) => {

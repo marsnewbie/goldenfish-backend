@@ -29,7 +29,8 @@
     "jsonwebtoken": "^9.0.2",
     "joi": "^17.11.0",
     "winston": "^3.11.0",
-    "rate-limiter-flexible": "^2.4.1"
+    "rate-limiter-flexible": "^2.4.1",
+    "@supabase/supabase-js": "^2.39.0"
   },
   "devDependencies": {
     "@types/express": "^4.17.21",
