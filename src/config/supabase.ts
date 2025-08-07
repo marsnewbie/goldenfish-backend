@@ -76,9 +76,17 @@ export async function getUserProfile(userId: string) {
     };
   } catch (error) {
     console.error('Error in simplified user profile:', error);
-    // Return basic structure even on error
+    // Return basic structure even on error - maintain same type structure
     return {
-      profile: { id: userId },
+      profile: {
+        id: userId,
+        first_name: null,
+        last_name: null,
+        phone: null,
+        auth_method: 'unknown',
+        last_sign_in_at: new Date().toISOString(),
+        sign_in_count: 0
+      },
       tenants: [],
       currentTenant: null
     };

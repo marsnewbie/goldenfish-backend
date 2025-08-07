@@ -142,15 +142,16 @@ router.get('/orders', standardLimiter, verifySupabaseAuth, async (req: Request, 
     const user = (req as any).user;
     const page = parseInt(req.query.page as string) || 1;
     const limit = Math.min(parseInt(req.query.limit as string) || 10, 50);
-    const offset = (page - 1) * limit;
+    // Remove unused offset variable
+    // const offset = (page - 1) * limit;
 
     console.log('📋 Getting user orders:', { userId: user.id, page, limit });
 
-    // Simplified orders - return empty list for now
+    // Simplified orders - return empty list for now with explicit typing
     console.log('📋 Orders request (simplified mode) - returning empty list');
     
-    const orders = [];
-    const count = 0;
+    const orders: any[] = [];
+    const count: number = 0;
 
     console.log('✅ Orders retrieved:', { userId: user.id, count: orders?.length || 0 });
 
