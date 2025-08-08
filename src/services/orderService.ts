@@ -54,13 +54,23 @@ export class OrderService {
       let emailSent = false;
       try {
         await EmailService.sendOrderConfirmation({
-          to: data.customerEmail,
-          customerName: data.customerName,
           orderNumber,
-          orderType: data.orderType,
-          totalAmount: data.totalAmount,
+          customerName: data.customerName,
+          customerEmail: data.customerEmail,
           items: data.items,
-          estimatedTime: orderData.estimated_time
+          totals: {
+            subtotal: data.subtotal,
+            deliveryFee: data.deliveryFee,
+            discount: 0,
+            total: data.totalAmount
+          },
+          deliveryType: data.orderType,
+          deliveryAddress: data.deliveryAddress,
+          specialInstructions: data.specialInstructions,
+          contact: {
+            phone: data.customerPhone
+          },
+          estimatedTime: parseInt(orderData.estimated_time?.split('-')[0] || '30')
         });
         emailSent = true;
       } catch (emailError) {
