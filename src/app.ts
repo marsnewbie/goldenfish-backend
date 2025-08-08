@@ -47,6 +47,36 @@ app.get('/health', (_req: Request, res: Response) => {
   });
 });
 
+// Auth health check endpoint
+app.get('/health/auth', async (_req: Request, res: Response) => {
+  try {
+    // Test Supabase connection
+    const { verifyUserToken } = await import('./config/supabase');
+    
+    res.json({
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      service: 'golden-fish-auth',
+      version: '1.0.0',
+      supabase_connection: 'ok',
+      auth_endpoints: {
+        profile: '/api/auth/profile',
+        orders: '/api/auth/orders',
+        addresses: '/api/auth/addresses'
+      }
+    });
+  } catch (error) {
+    console.error('❌ Auth health check failed:', error);
+    res.status(500).json({
+      status: 'unhealthy',
+      timestamp: new Date().toISOString(),
+      service: 'golden-fish-auth',
+      error: 'Supabase connection failed',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 // API routes
 app.use('/api/orders', orderRoutes);
 app.use('/api/auth', supabaseAuthRoutes); // Modern Supabase auth routes

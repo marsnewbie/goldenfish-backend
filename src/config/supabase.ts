@@ -34,6 +34,7 @@ export async function verifyUserToken(token: string) {
       throw new Error('Invalid token');
     }
     
+    console.log('✅ Token verified for user:', user.email);
     return user;
   } catch (error) {
     // Only log unexpected errors, not authentication failures
