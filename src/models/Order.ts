@@ -1,42 +1,52 @@
+// Modern checkout data structures
 export interface OrderItem {
   name: string;
   price: number;
-  qty: number;
-  selectedOptions?: Record<string, any>;
+  quantity: number;
+  customizations?: string[];
   isFreeItem?: boolean;
 }
 
-export interface DeliveryAddress {
-  street: string;
-  city: string;
-  postcode: string;
-  instructions?: string;
-}
-
-export interface CustomerInfo {
+export interface Customer {
   firstName: string;
   lastName: string;
   email: string;
   phone: string;
-  accountType: 'guest' | 'register';
-  password?: string;
 }
 
-export interface OrderTotals {
-  subtotal: number;
-  deliveryFee: number;
-  discount: number;
-  total: number;
+export interface DeliveryInfo {
+  method: 'delivery' | 'pickup';
+  address?: string;
+  city?: string;
+  postcode?: string;
+  instructions?: string;
+}
+
+export interface PaymentInfo {
+  method: 'cash' | 'card';
+}
+
+export interface Promotion {
+  id: string;
+  name: string;
+  type: 'amount_off' | 'percentage_off' | 'free_item';
+  discount?: number;
 }
 
 export interface CreateOrderData {
-  customerInfo: CustomerInfo;
+  // Authentication info
+  accountType: 'guest' | 'magic-link';
+  isLoggedIn: boolean;
+  
+  // Customer details
+  customer: Customer;
+  
+  // Order details
+  delivery: DeliveryInfo;
+  payment: PaymentInfo;
   items: OrderItem[];
-  deliveryType: 'delivery' | 'collection';
-  deliveryAddress?: DeliveryAddress;
+  promotions?: Promotion[];
   specialInstructions?: string;
-  paymentMethod: string;
-  totals: OrderTotals;
 }
 
 export interface Order {

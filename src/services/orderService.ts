@@ -17,41 +17,45 @@ export class OrderService {
       // Generate order number
       const orderNumber = await OrderNumberGenerator.generateDailySequential();
       
-      // Handle user creation/lookup for registered users
-      let userId: number | null = null;
+      // Handle user association for authenticated users
+      let userId: string | null = null;
+      let userType = 'guest';
       
-      if (data.customerInfo.accountType === 'register') {
-        // Check if user already exists
-        const existingUser = await client.query(
-          'SELECT id FROM users WHERE email = $1',
-          [data.customerInfo.email]
-        );
+      if (data.isLoggedIn && data.accountType === 'magic-link') {
+        userType = 'registered';
         
-        if (existingUser.rows.length > 0) {
-          userId = existingUser.rows[0].id;
-        } else {
-          // Create new user
-          const newUser = await client.query(`
-            INSERT INTO users (email, first_name, last_name, phone, user_type, created_at)
-            VALUES ($1, $2, $3, $4, $5, NOW())
-            RETURNING id
-          `, [
-            data.customerInfo.email,
-            data.customerInfo.firstName,
-            data.customerInfo.lastName,
-            data.customerInfo.phone,
-            'registered'
-          ]);
-          userId = newUser.rows[0].id;
-        }
+        // For Supabase authenticated users, we'll get the user ID from the JWT token
+        // This will be handled by the auth middleware in the future
+        // For now, we'll store the email as reference
+        console.log('🔐 Order placed by authenticated user:', data.customer.email);
       }
       
-      // Calculate estimated time
-      const estimatedTime = data.deliveryType === 'delivery' 
+      console.log('👤 User info:', { 
+        accountType: data.accountType, 
+        isLoggedIn: data.isLoggedIn, 
+        userType 
+      });
+      
+      // Calculate estimated time based on delivery method
+      const estimatedTime = data.delivery.method === 'delivery' 
         ? config.defaultPrepTimes.delivery 
         : config.defaultPrepTimes.collection;
       
-      // Insert order
+      // Calculate totals from items and promotions
+      const subtotal = data.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      const deliveryFee = data.delivery.method === 'delivery' ? 2.50 : 0; // Default delivery fee
+      const discount = data.promotions?.reduce((sum, promo) => sum + (promo.discount || 0), 0) || 0;
+      const total = subtotal + deliveryFee - discount;
+
+      // Prepare delivery address if delivery method
+      const deliveryAddress = data.delivery.method === 'delivery' ? {
+        address: data.delivery.address,
+        city: data.delivery.city,
+        postcode: data.delivery.postcode,
+        instructions: data.delivery.instructions
+      } : null;
+
+      // Insert order with new structure
       const orderResult = await client.query(`
         INSERT INTO orders (
           order_number, restaurant_id, user_id,
@@ -67,20 +71,20 @@ export class OrderService {
         orderNumber,
         1, // Default restaurant ID
         userId,
-        `${data.customerInfo.firstName} ${data.customerInfo.lastName}`,
-        data.customerInfo.email,
-        data.customerInfo.phone,
+        `${data.customer.firstName} ${data.customer.lastName}`,
+        data.customer.email,
+        data.customer.phone,
         JSON.stringify(data.items),
-        data.deliveryType,
-        data.deliveryAddress ? JSON.stringify(data.deliveryAddress) : null,
-        data.deliveryAddress?.instructions || null,
+        data.delivery.method,
+        deliveryAddress ? JSON.stringify(deliveryAddress) : null,
+        data.delivery.instructions || null,
         data.specialInstructions || null,
-        data.totals.subtotal,
-        data.totals.deliveryFee,
-        data.totals.discount,
-        data.totals.total,
+        subtotal,
+        deliveryFee,
+        discount,
+        total,
         'received',
-        data.paymentMethod,
+        data.payment.method,
         'pending',
         estimatedTime
       ]);
@@ -95,20 +99,22 @@ export class OrderService {
       
       await client.query('COMMIT');
       
-      // Send confirmation email
+      // Send confirmation email with updated data structure
       const emailResult = await EmailService.sendOrderConfirmation({
         orderNumber: order.order_number,
         customerName: order.customer_name,
         customerEmail: order.customer_email,
         items: data.items,
-        totals: data.totals,
-        deliveryType: data.deliveryType,
-        deliveryAddress: data.deliveryAddress,
+        totals: { subtotal, deliveryFee, discount, total },
+        deliveryType: data.delivery.method,
+        deliveryAddress: deliveryAddress,
         specialInstructions: data.specialInstructions,
         contact: {
-          phone: data.customerInfo.phone
+          phone: data.customer.phone
         },
-        estimatedTime
+        estimatedTime,
+        accountType: data.accountType,
+        isLoggedIn: data.isLoggedIn
       });
       
       console.log('✅ Order created successfully:', {

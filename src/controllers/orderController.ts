@@ -3,51 +3,65 @@ import { OrderService } from '../services/orderService';
 import { CreateOrderData, OrderStatusUpdate } from '../models/Order';
 import Joi from 'joi';
 
-// Validation schemas
+// Validation schemas - Updated for modern checkout
 const createOrderSchema = Joi.object({
-  customerInfo: Joi.object({
+  // Account and authentication info
+  accountType: Joi.string().valid('guest', 'magic-link').required(),
+  isLoggedIn: Joi.boolean().required(),
+  
+  // Customer information
+  customer: Joi.object({
     firstName: Joi.string().required().min(1).max(50),
     lastName: Joi.string().required().min(1).max(50),
     email: Joi.string().email().required(),
-    phone: Joi.string().required().pattern(/^(\+44|0)[1-9]\d{8,10}$/),
-    accountType: Joi.string().valid('guest', 'register').required(),
-    password: Joi.string().min(6).when('accountType', {
-      is: 'register',
-      then: Joi.required(),
-      otherwise: Joi.forbidden()
-    })
+    phone: Joi.string().required().pattern(/^(\+44|0)[1-9]\d{8,10}$/)
   }).required(),
   
+  // Delivery information  
+  delivery: Joi.object({
+    method: Joi.string().valid('delivery', 'pickup').required(),
+    address: Joi.string().when('method', {
+      is: 'delivery',
+      then: Joi.required().min(5).max(200),
+      otherwise: Joi.allow('')
+    }),
+    city: Joi.string().when('method', {
+      is: 'delivery', 
+      then: Joi.required().min(2).max(100),
+      otherwise: Joi.allow('')
+    }),
+    postcode: Joi.string().when('method', {
+      is: 'delivery',
+      then: Joi.required().pattern(/^[A-Z]{1,2}\d[A-Z\d]?\s?\d[A-Z]{2}$/i),
+      otherwise: Joi.allow('')
+    }),
+    instructions: Joi.string().max(500).allow('')
+  }).required(),
+  
+  // Payment information
+  payment: Joi.object({
+    method: Joi.string().valid('cash', 'card').required()
+  }).required(),
+  
+  // Order items
   items: Joi.array().items(Joi.object({
     name: Joi.string().required(),
     price: Joi.number().positive().required(),
-    qty: Joi.number().integer().positive().required(),
-    selectedOptions: Joi.object().optional(),
+    quantity: Joi.number().integer().positive().required(),
+    customizations: Joi.array().items(Joi.string()).optional(),
     isFreeItem: Joi.boolean().optional()
   })).min(1).required(),
   
-  deliveryType: Joi.string().valid('delivery', 'collection').required(),
+  // Promotions applied
+  promotions: Joi.array().items(Joi.object({
+    id: Joi.string().required(),
+    name: Joi.string().required(),
+    type: Joi.string().valid('amount_off', 'percentage_off', 'free_item').required(),
+    discount: Joi.number().min(0).optional()
+  })).optional(),
   
-  deliveryAddress: Joi.object({
-    street: Joi.string().required().min(5).max(200),
-    city: Joi.string().required().min(2).max(100),
-    postcode: Joi.string().required().pattern(/^[A-Z]{1,2}\d[A-Z\d]?\s?\d[A-Z]{2}$/i),
-    instructions: Joi.string().max(500).optional()
-  }).when('deliveryType', {
-    is: 'delivery',
-    then: Joi.required(),
-    otherwise: Joi.forbidden()
-  }),
-  
-  specialInstructions: Joi.string().max(500).allow('').optional(),
-  paymentMethod: Joi.string().valid('card', 'cash', 'paypal').required(),
-  
-  totals: Joi.object({
-    subtotal: Joi.number().positive().required(),
-    deliveryFee: Joi.number().min(0).required(),
-    discount: Joi.number().min(0).required(),
-    total: Joi.number().positive().required()
-  }).required()
+  // Special instructions
+  specialInstructions: Joi.string().max(500).allow('')
 });
 
 const updateOrderStatusSchema = Joi.object({
@@ -76,10 +90,11 @@ export class OrderController {
       const orderData: CreateOrderData = value;
       
       console.log('📋 Creating new order:', {
-        customerEmail: orderData.customerInfo.email,
-        deliveryType: orderData.deliveryType,
+        customerEmail: orderData.customer.email,
+        deliveryMethod: orderData.delivery.method,
         itemCount: orderData.items.length,
-        total: orderData.totals.total
+        accountType: orderData.accountType,
+        isLoggedIn: orderData.isLoggedIn
       });
 
       // Create order
