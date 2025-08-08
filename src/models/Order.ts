@@ -8,6 +8,7 @@ export interface OrderItem {
 }
 
 export interface Customer {
+  id?: number; // Optional user ID for registered customers
   firstName: string;
   lastName: string;
   email: string;
@@ -33,6 +34,13 @@ export interface Promotion {
   discount?: number;
 }
 
+export interface OrderTotals {
+  subtotal: number;
+  deliveryFee: number;
+  discount: number;
+  total: number;
+}
+
 export interface CreateOrderData {
   // Authentication info
   accountType: 'guest' | 'registered';
@@ -45,6 +53,7 @@ export interface CreateOrderData {
   delivery: DeliveryInfo;
   payment: PaymentInfo;
   items: OrderItem[];
+  totals: OrderTotals;
   promotions?: Promotion[];
   specialInstructions?: string;
 }

@@ -102,7 +102,7 @@ export class OrderController {
         customerName: `${orderData.customer.firstName} ${orderData.customer.lastName}`,
         customerEmail: orderData.customer.email,
         customerPhone: orderData.customer.phone,
-        orderType: orderData.delivery.method === 'delivery' ? 'delivery' : 'collection',
+        orderType: (orderData.delivery.method === 'delivery' ? 'delivery' : 'collection') as 'delivery' | 'collection',
         deliveryAddress: orderData.delivery.method === 'delivery' ? {
           street: orderData.delivery.address || '',
           city: orderData.delivery.city || '',
@@ -110,9 +110,9 @@ export class OrderController {
           instructions: orderData.delivery.instructions
         } : undefined,
         items: orderData.items,
-        subtotal: orderData.totals?.subtotal || 0,
-        deliveryFee: orderData.totals?.deliveryFee || 0,
-        totalAmount: orderData.totals?.total || 0,
+        subtotal: orderData.totals.subtotal,
+        deliveryFee: orderData.totals.deliveryFee,
+        totalAmount: orderData.totals.total,
         specialInstructions: orderData.specialInstructions,
         userId: orderData.isLoggedIn ? orderData.customer.id : undefined
       };
@@ -188,7 +188,7 @@ export class OrderController {
    */
   static async getOrders(req: Request, res: Response): Promise<void> {
     try {
-      const status = req.query.status as string;
+      // const status = req.query.status as string;
       const limit = parseInt(req.query.limit as string || '50', 10);
       const offset = parseInt(req.query.offset as string || '0', 10);
 
@@ -242,10 +242,10 @@ export class OrderController {
         return;
       }
 
-      const updateData: OrderStatusUpdate = {
-        orderId,
-        ...value
-      };
+      // const updateData: OrderStatusUpdate = {
+      //   orderId,
+      //   ...value
+      // };
 
       // TODO: Implement updateOrderStatus in OrderService
       const updatedOrder = null; // await OrderService.updateOrderStatus(updateData);
