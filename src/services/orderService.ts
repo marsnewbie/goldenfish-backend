@@ -47,13 +47,13 @@ export class OrderService {
       const discount = data.promotions?.reduce((sum, promo) => sum + (promo.discount || 0), 0) || 0;
       const total = subtotal + deliveryFee - discount;
 
-      // Prepare delivery address if delivery method
+      // Prepare delivery address if delivery method - convert to database format
       const deliveryAddress = data.delivery.method === 'delivery' ? {
-        address: data.delivery.address,
-        city: data.delivery.city,
-        postcode: data.delivery.postcode,
-        instructions: data.delivery.instructions
-      } : null;
+        street: data.delivery.address || '',
+        city: data.delivery.city || '',
+        postcode: data.delivery.postcode || '',
+        instructions: data.delivery.instructions || ''
+      } : undefined;
 
       // Insert order with new structure
       const orderResult = await client.query(`
@@ -74,8 +74,14 @@ export class OrderService {
         `${data.customer.firstName} ${data.customer.lastName}`,
         data.customer.email,
         data.customer.phone,
-        JSON.stringify(data.items),
-        data.delivery.method,
+        JSON.stringify(data.items.map(item => ({
+          name: item.name,
+          price: item.price,
+          qty: item.quantity, // Convert quantity to qty for database compatibility
+          selectedOptions: item.customizations?.length ? { customizations: item.customizations } : {},
+          isFreeItem: item.isFreeItem || false
+        }))),
+        data.delivery.method === 'pickup' ? 'collection' : 'delivery', // Convert pickup to collection for database
         deliveryAddress ? JSON.stringify(deliveryAddress) : null,
         data.delivery.instructions || null,
         data.specialInstructions || null,
@@ -99,22 +105,25 @@ export class OrderService {
       
       await client.query('COMMIT');
       
-      // Send confirmation email with updated data structure
+      // Send confirmation email with updated data structure  
       const emailResult = await EmailService.sendOrderConfirmation({
         orderNumber: order.order_number,
         customerName: order.customer_name,
         customerEmail: order.customer_email,
-        items: data.items,
+        items: data.items.map(item => ({
+          name: item.name,
+          price: item.price,
+          qty: item.quantity,
+          selectedOptions: item.customizations?.length ? { customizations: item.customizations } : {}
+        })),
         totals: { subtotal, deliveryFee, discount, total },
-        deliveryType: data.delivery.method,
+        deliveryType: data.delivery.method === 'pickup' ? 'collection' : 'delivery',
         deliveryAddress: deliveryAddress,
         specialInstructions: data.specialInstructions,
         contact: {
           phone: data.customer.phone
         },
-        estimatedTime,
-        accountType: data.accountType,
-        isLoggedIn: data.isLoggedIn
+        estimatedTime
       });
       
       console.log('✅ Order created successfully:', {

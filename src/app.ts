@@ -50,8 +50,8 @@ app.get('/health', (_req: Request, res: Response) => {
 // Auth health check endpoint
 app.get('/health/auth', async (_req: Request, res: Response) => {
   try {
-    // Test Supabase connection
-    const { verifyUserToken } = await import('./config/supabase');
+    // Test Supabase connection - just import the module
+    await import('./config/supabase');
     
     res.json({
       status: 'healthy',

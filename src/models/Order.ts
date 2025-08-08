@@ -49,6 +49,14 @@ export interface CreateOrderData {
   specialInstructions?: string;
 }
 
+// Legacy delivery address interface for database compatibility
+export interface DeliveryAddress {
+  street: string;
+  city: string;
+  postcode: string;
+  instructions?: string;
+}
+
 export interface Order {
   id: number;
   orderNumber: string;

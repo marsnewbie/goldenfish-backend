@@ -50,14 +50,14 @@ const createOrderSchema = Joi.object({
     quantity: Joi.number().integer().positive().required(),
     customizations: Joi.array().items(Joi.string()).optional(),
     isFreeItem: Joi.boolean().optional()
-  })).min(1).required(),
+  })).required(),
   
   // Promotions applied
   promotions: Joi.array().items(Joi.object({
     id: Joi.string().required(),
     name: Joi.string().required(),
     type: Joi.string().valid('amount_off', 'percentage_off', 'free_item').required(),
-    discount: Joi.number().min(0).optional()
+    discount: Joi.number().optional()
   })).optional(),
   
   // Special instructions
