@@ -11,10 +11,10 @@ const createOrderSchema = Joi.object({
   
   // Customer information
   customer: Joi.object({
-    firstName: Joi.string().required().min(1).max(50),
-    lastName: Joi.string().required().min(1).max(50),
+    firstName: Joi.string().required(),
+    lastName: Joi.string().required(),
     email: Joi.string().email().required(),
-    phone: Joi.string().required().pattern(/^(\+44|0)[1-9]\d{8,10}$/)
+    phone: Joi.string().required()
   }).required(),
   
   // Delivery information  
@@ -22,20 +22,20 @@ const createOrderSchema = Joi.object({
     method: Joi.string().valid('delivery', 'pickup').required(),
     address: Joi.string().when('method', {
       is: 'delivery',
-      then: Joi.required().min(5).max(200),
+      then: Joi.required(),
       otherwise: Joi.allow('')
     }),
     city: Joi.string().when('method', {
       is: 'delivery', 
-      then: Joi.required().min(2).max(100),
+      then: Joi.required(),
       otherwise: Joi.allow('')
     }),
     postcode: Joi.string().when('method', {
       is: 'delivery',
-      then: Joi.required().pattern(/^[A-Z]{1,2}\d[A-Z\d]?\s?\d[A-Z]{2}$/i),
+      then: Joi.required(),
       otherwise: Joi.allow('')
     }),
-    instructions: Joi.string().max(500).allow('')
+    instructions: Joi.string().allow('')
   }).required(),
   
   // Payment information
@@ -61,12 +61,12 @@ const createOrderSchema = Joi.object({
   })).optional(),
   
   // Special instructions
-  specialInstructions: Joi.string().max(500).allow('')
+  specialInstructions: Joi.string().allow('')
 });
 
 const updateOrderStatusSchema = Joi.object({
   status: Joi.string().valid('received', 'preparing', 'ready', 'completed', 'cancelled').required(),
-  notes: Joi.string().max(500).optional(),
+  notes: Joi.string().optional(),
   estimatedTime: Joi.number().integer().positive().optional()
 });
 
