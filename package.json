@@ -1,6 +1,6 @@
 {
   "name": "goldenfish-backend",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Golden Fish Restaurant Order Management API",
   "main": "dist/server.js",
   "scripts": {
