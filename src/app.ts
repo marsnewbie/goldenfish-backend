@@ -7,7 +7,6 @@ import config from './config/environment';
 // import { connectDatabase } from './config/database'; // Now using Supabase client
 import orderRoutes from './routes/orders';
 import authRoutes from './routes/auth';
-import supabaseAuthRoutes from './routes/supabase-auth';
 
 // Create Express app
 const app: Application = express();
@@ -50,19 +49,16 @@ app.get('/health', (_req: Request, res: Response) => {
 // Auth health check endpoint
 app.get('/health/auth', async (_req: Request, res: Response) => {
   try {
-    // Test Supabase connection - just import the module
-    await import('./config/supabase');
-    
     res.json({
       status: 'healthy',
       timestamp: new Date().toISOString(),
       service: 'golden-fish-auth',
       version: '1.0.0',
-      supabase_connection: 'ok',
+      auth_system: 'traditional_jwt',
       auth_endpoints: {
-        profile: '/api/auth/profile',
-        orders: '/api/auth/orders',
-        addresses: '/api/auth/addresses'
+        signin: '/api/auth/signin',
+        signup: '/api/auth/signup',
+        verify: '/api/auth/verify'
       }
     });
   } catch (error) {
@@ -71,7 +67,7 @@ app.get('/health/auth', async (_req: Request, res: Response) => {
       status: 'unhealthy',
       timestamp: new Date().toISOString(),
       service: 'golden-fish-auth',
-      error: 'Supabase connection failed',
+      error: 'Auth system check failed',
       details: error instanceof Error ? error.message : 'Unknown error'
     });
   }
@@ -79,8 +75,7 @@ app.get('/health/auth', async (_req: Request, res: Response) => {
 
 // API routes
 app.use('/api/orders', orderRoutes);
-app.use('/api/auth', authRoutes); // Traditional auth routes (signin/signup)
-app.use('/api/supabase-auth', supabaseAuthRoutes); // Supabase auth routes
+app.use('/api/auth', authRoutes); // Traditional JWT authentication
 
 // Migration endpoint (for Railway deployment)
 app.post('/migrate', async (_req: Request, res: Response) => {
