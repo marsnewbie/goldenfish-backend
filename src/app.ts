@@ -73,6 +73,50 @@ app.get('/health/auth', async (_req: Request, res: Response) => {
   }
 });
 
+// Database diagnostic endpoint
+app.get('/debug/database', async (_req: Request, res: Response) => {
+  try {
+    // Check if users table exists and its structure
+    const tableCheck = await import('./config/database').then(db => 
+      db.db.query(`
+        SELECT column_name, data_type, is_nullable 
+        FROM information_schema.columns 
+        WHERE table_name = 'users' 
+        ORDER BY ordinal_position
+      `)
+    );
+
+    // Count users
+    const userCount = await import('./config/database').then(db => 
+      db.db.query('SELECT COUNT(*) as count FROM users')
+    );
+
+    // Check for test user
+    const testUser = await import('./config/database').then(db => 
+      db.db.query("SELECT id, email, first_name, last_name FROM users WHERE email = 'test@goldenfish.co.uk'")
+    );
+
+    res.json({
+      status: 'debug',
+      timestamp: new Date().toISOString(),
+      database: {
+        users_table_structure: tableCheck.rows,
+        total_users: userCount.rows[0]?.count || 0,
+        test_user_exists: testUser.rows.length > 0,
+        test_user_data: testUser.rows[0] || null
+      }
+    });
+  } catch (error) {
+    console.error('❌ Database debug failed:', error);
+    res.status(500).json({
+      status: 'debug_failed',
+      timestamp: new Date().toISOString(),
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : null
+    });
+  }
+});
+
 // API routes
 app.use('/api/orders', orderRoutes);
 app.use('/api/auth', authRoutes); // Traditional JWT authentication
