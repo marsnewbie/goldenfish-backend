@@ -15,6 +15,7 @@ CREATE TABLE users (
   last_name VARCHAR(100) NOT NULL,
   phone VARCHAR(20),
   password_hash VARCHAR(255) NOT NULL,
+  role VARCHAR(20) DEFAULT 'customer' CHECK (role IN ('customer', 'admin')),
   status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'inactive', 'suspended')),
   created_at TIMESTAMP DEFAULT NOW(),
   last_login_at TIMESTAMP,
@@ -42,15 +43,17 @@ CREATE TABLE orders (
   customer_name VARCHAR(200) NOT NULL,
   customer_email VARCHAR(255) NOT NULL,
   customer_phone VARCHAR(20) NOT NULL,
-  order_type VARCHAR(20) NOT NULL CHECK (order_type IN ('delivery', 'collection')),
+  delivery_type VARCHAR(20) NOT NULL CHECK (delivery_type IN ('delivery', 'pickup')),
   delivery_address JSONB,
+  delivery_instructions TEXT,
+  special_instructions TEXT,
   items JSONB NOT NULL,
   subtotal DECIMAL(10,2) NOT NULL,
   delivery_fee DECIMAL(10,2) DEFAULT 0,
-  total_amount DECIMAL(10,2) NOT NULL,
-  order_status VARCHAR(20) DEFAULT 'pending' CHECK (order_status IN ('pending', 'confirmed', 'preparing', 'ready', 'completed', 'cancelled')),
-  special_instructions TEXT,
-  estimated_time VARCHAR(50),
+  discount DECIMAL(10,2) DEFAULT 0,
+  total DECIMAL(10,2) NOT NULL,
+  status VARCHAR(20) DEFAULT 'received' CHECK (status IN ('received', 'preparing', 'ready', 'completed', 'cancelled')),
+  estimated_time INTEGER DEFAULT 30,
   payment_method VARCHAR(20) DEFAULT 'cash' CHECK (payment_method IN ('cash', 'card')),
   payment_status VARCHAR(20) DEFAULT 'pending' CHECK (payment_status IN ('pending', 'paid', 'failed')),
   created_at TIMESTAMP DEFAULT NOW(),
@@ -81,18 +84,19 @@ CREATE INDEX idx_user_addresses_user_id ON user_addresses(user_id);
 CREATE INDEX idx_orders_user_id ON orders(user_id);
 CREATE INDEX idx_orders_number ON orders(order_number);
 CREATE INDEX idx_orders_email ON orders(customer_email);
-CREATE INDEX idx_orders_status ON orders(order_status);
+CREATE INDEX idx_orders_status ON orders(status);
 CREATE INDEX idx_menu_items_category ON menu_items(category);
 CREATE INDEX idx_menu_items_available ON menu_items(available);
 
 -- 7. Create test user (password: test123)
-INSERT INTO users (email, first_name, last_name, phone, password_hash, status)
+INSERT INTO users (email, first_name, last_name, phone, password_hash, role, status)
 VALUES (
   'test@goldenfish.co.uk', 
   'Test', 
   'User', 
   '01904123456', 
-  '$2a$12$rMaFzFz7qQq5rNgZJ7cFl.wJ8rV5x5XzKd5pXJ9Zq5pqZrTlrOxkG', 
+  '$2a$12$rMaFzFz7qQq5rNgZJ7cFl.wJ8rV5x5XzKd5pXJ9Zq5pqZrTlrOxkG',
+  'customer',
   'active'
 ) ON CONFLICT (email) DO NOTHING;
 
@@ -120,13 +124,14 @@ INSERT INTO menu_items (name, description, price, category, spicy, vegetarian, a
 ('Fresh Orange Juice', 'Freshly squeezed orange juice', 3.80, 'Drinks', false, true, true, false, 3);
 
 -- 9. Create admin user (password: admin123)
-INSERT INTO users (email, first_name, last_name, phone, password_hash, status)
+INSERT INTO users (email, first_name, last_name, phone, password_hash, role, status)
 VALUES (
   'admin@goldenfish.co.uk', 
   'Admin', 
   'User', 
   '01904999999', 
-  '$2a$12$K8ZkjH9.qJGRHvqpqCXRuOQy7gHsIXyD1WgK8QRJzYvLgKT0TcJtm', 
+  '$2a$12$K8ZkjH9.qJGRHvqpqCXRuOQy7gHsIXyD1WgK8QRJzYvLgKT0TcJtm',
+  'admin', 
   'active'
 ) ON CONFLICT (email) DO NOTHING;
 

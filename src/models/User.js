@@ -10,6 +10,7 @@ class User {
     this.lastName = data.last_name || data.lastName;
     this.phone = data.phone;
     this.passwordHash = data.password_hash || data.passwordHash;
+    this.role = data.role || 'customer';
     this.status = data.status || 'active';
     this.createdAt = data.created_at || data.createdAt;
     this.lastLoginAt = data.last_login_at || data.lastLoginAt;
@@ -42,6 +43,7 @@ class User {
         last_name: lastName.trim(),
         phone: phone.trim(),
         password_hash: passwordHash,
+        role: 'customer',
         status: 'active'
       })
       .select()
@@ -213,9 +215,9 @@ class User {
     return phoneRegex.test(cleanPhone);
   }
 
-  // Check if user is admin (you can extend this logic)
+  // Check if user is admin
   isAdmin() {
-    return this.email === 'admin@goldenfish.co.uk';
+    return this.role === 'admin';
   }
 }
 
