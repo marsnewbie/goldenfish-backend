@@ -21,13 +21,13 @@ export class OrderService {
       let userId: string | null = null;
       let userType = 'guest';
       
-      if (data.isLoggedIn && data.accountType === 'magic-link') {
+      if (data.isLoggedIn && data.accountType === 'registered') {
         userType = 'registered';
         
-        // For Supabase authenticated users, we'll get the user ID from the JWT token
+        // For registered users, we'll get the user ID from the JWT token
         // This will be handled by the auth middleware in the future
         // For now, we'll store the email as reference
-        console.log('🔐 Order placed by authenticated user:', data.customer.email);
+        console.log('🔐 Order placed by registered user:', data.customer.email);
       }
       
       console.log('👤 User info:', { 

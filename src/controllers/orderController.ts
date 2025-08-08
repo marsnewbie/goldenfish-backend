@@ -6,7 +6,7 @@ import Joi from 'joi';
 // Validation schemas - Updated for modern checkout
 const createOrderSchema = Joi.object({
   // Account and authentication info
-  accountType: Joi.string().valid('guest', 'magic-link').required(),
+  accountType: Joi.string().valid('guest', 'registered').required(),
   isLoggedIn: Joi.boolean().required(),
   
   // Customer information

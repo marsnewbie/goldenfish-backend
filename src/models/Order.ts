@@ -35,7 +35,7 @@ export interface Promotion {
 
 export interface CreateOrderData {
   // Authentication info
-  accountType: 'guest' | 'magic-link';
+  accountType: 'guest' | 'registered';
   isLoggedIn: boolean;
   
   // Customer details
