@@ -43,7 +43,7 @@ router.post('/signin', standardLimiter, async (req: Request, res: Response) => {
     const userResult = await db.query(
       `SELECT 
          id, email, first_name, last_name, phone, password_hash, 
-         created_at, last_login, status
+         created_at, last_login_at, status
        FROM users 
        WHERE email = $1 AND status = 'active'`,
       [email.toLowerCase()]
@@ -73,7 +73,7 @@ router.post('/signin', standardLimiter, async (req: Request, res: Response) => {
 
     // Update last login time
     await db.query(
-      'UPDATE users SET last_login = NOW() WHERE id = $1',
+      'UPDATE users SET last_login_at = NOW() WHERE id = $1',
       [user.id]
     );
 
