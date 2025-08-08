@@ -79,8 +79,8 @@ app.get('/health/auth', async (_req: Request, res: Response) => {
 
 // API routes
 app.use('/api/orders', orderRoutes);
-app.use('/api/auth', supabaseAuthRoutes); // Modern Supabase auth routes
-app.use('/api/legacy-auth', authRoutes); // Legacy auth for backward compatibility
+app.use('/api/auth', authRoutes); // Traditional auth routes (signin/signup)
+app.use('/api/supabase-auth', supabaseAuthRoutes); // Supabase auth routes
 
 // Migration endpoint (for Railway deployment)
 app.post('/migrate', async (_req: Request, res: Response) => {
