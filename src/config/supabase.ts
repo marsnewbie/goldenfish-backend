@@ -57,6 +57,7 @@ export async function getUserProfile(userId: string) {
       id: userId,
       first_name: null,
       last_name: null,
+      phone: null,
       auth_method: 'magic_link',
       last_sign_in_at: new Date().toISOString(),
       sign_in_count: 1
