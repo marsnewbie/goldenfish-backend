@@ -1,118 +1,69 @@
 import { supabase } from './supabase-client';
 
-// Initialize database tables for Golden Fish ordering system
+// Simplified database initialization - checks if tables exist
 export async function initializeDatabase() {
-  console.log('🔄 Initializing Supabase database tables...');
+  console.log('🔄 Checking Supabase database tables...');
 
   try {
-    // Create users table
-    await createUsersTable();
+    // Check if tables exist by trying to select from them
+    await checkUsersTable();
+    await checkUserAddressesTable();
+    await checkOrdersTable();
+    await ensureTestUser();
     
-    // Create user_addresses table
-    await createUserAddressesTable();
-    
-    // Create orders table
-    await createOrdersTable();
-    
-    // Create a test user
-    await createTestUser();
-    
-    console.log('✅ Database initialization completed successfully');
+    console.log('✅ Database verification completed successfully');
     return { success: true };
     
   } catch (error) {
-    console.error('❌ Database initialization failed:', error);
+    console.error('❌ Database verification failed:', error);
     return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
   }
 }
 
-async function createUsersTable() {
-  // Direct SQL execution via Supabase client
-  const { error } = await supabase.sql`
-    CREATE TABLE IF NOT EXISTS users (
-      id SERIAL PRIMARY KEY,
-      email VARCHAR(255) UNIQUE NOT NULL,
-      first_name VARCHAR(100) NOT NULL,
-      last_name VARCHAR(100) NOT NULL,
-      phone VARCHAR(20),
-      password_hash VARCHAR(255) NOT NULL,
-      status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'inactive', 'suspended')),
-      created_at TIMESTAMP DEFAULT NOW(),
-      last_login_at TIMESTAMP,
-      updated_at TIMESTAMP DEFAULT NOW()
-    );
+async function checkUsersTable() {
+  const { error } = await supabase
+    .from('users')
+    .select('id')
+    .limit(1);
     
-    CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
-    CREATE INDEX IF NOT EXISTS idx_users_status ON users(status);
-  `;
-  
-  if (error && !error.message.includes('already exists')) {
-    console.log('Users table creation error:', error.message);
+  if (error) {
+    console.log('❌ Users table does not exist or is not accessible');
+    console.log('Please run setup-supabase-tables.sql in Supabase Dashboard');
+    throw new Error('Users table missing');
   } else {
-    console.log('✅ Users table created/verified');
+    console.log('✅ Users table exists');
   }
 }
 
-async function createUserAddressesTable() {
-  const { error } = await supabase.sql`
-    CREATE TABLE IF NOT EXISTS user_addresses (
-      id SERIAL PRIMARY KEY,
-      user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-      street VARCHAR(200) NOT NULL,
-      city VARCHAR(100) NOT NULL,
-      postcode VARCHAR(20) NOT NULL,
-      instructions TEXT,
-      is_default BOOLEAN DEFAULT false,
-      created_at TIMESTAMP DEFAULT NOW(),
-      updated_at TIMESTAMP DEFAULT NOW()
-    );
+async function checkUserAddressesTable() {
+  const { error } = await supabase
+    .from('user_addresses')
+    .select('id')
+    .limit(1);
     
-    CREATE INDEX IF NOT EXISTS idx_user_addresses_user_id ON user_addresses(user_id);
-  `;
-  
-  if (error && !error.message.includes('already exists')) {
-    console.log('User addresses table creation error:', error.message);
+  if (error) {
+    console.log('❌ User addresses table does not exist or is not accessible');
+    throw new Error('User addresses table missing');
   } else {
-    console.log('✅ User addresses table created/verified');
+    console.log('✅ User addresses table exists');
   }
 }
 
-async function createOrdersTable() {
-  const { error } = await supabase.sql`
-    CREATE TABLE IF NOT EXISTS orders (
-      id SERIAL PRIMARY KEY,
-      user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
-      order_number VARCHAR(50) UNIQUE NOT NULL,
-      customer_name VARCHAR(200) NOT NULL,
-      customer_email VARCHAR(255) NOT NULL,
-      customer_phone VARCHAR(20) NOT NULL,
-      order_type VARCHAR(20) NOT NULL CHECK (order_type IN ('delivery', 'collection')),
-      delivery_address JSONB,
-      items JSONB NOT NULL,
-      subtotal DECIMAL(10,2) NOT NULL,
-      delivery_fee DECIMAL(10,2) DEFAULT 0,
-      total_amount DECIMAL(10,2) NOT NULL,
-      order_status VARCHAR(20) DEFAULT 'pending' CHECK (order_status IN ('pending', 'confirmed', 'preparing', 'ready', 'completed', 'cancelled')),
-      special_instructions TEXT,
-      estimated_time VARCHAR(50),
-      created_at TIMESTAMP DEFAULT NOW(),
-      updated_at TIMESTAMP DEFAULT NOW()
-    );
+async function checkOrdersTable() {
+  const { error } = await supabase
+    .from('orders')
+    .select('id')
+    .limit(1);
     
-    CREATE INDEX IF NOT EXISTS idx_orders_user_id ON orders(user_id);
-    CREATE INDEX IF NOT EXISTS idx_orders_number ON orders(order_number);
-    CREATE INDEX IF NOT EXISTS idx_orders_email ON orders(customer_email);
-    CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(order_status);
-  `;
-  
-  if (error && !error.message.includes('already exists')) {
-    console.log('Orders table creation error:', error.message);
+  if (error) {
+    console.log('❌ Orders table does not exist or is not accessible');
+    throw new Error('Orders table missing');
   } else {
-    console.log('✅ Orders table created/verified');
+    console.log('✅ Orders table exists');
   }
 }
 
-async function createTestUser() {
+async function ensureTestUser() {
   try {
     // Check if test user exists
     const { data: existingUser, error: selectError } = await supabase
@@ -122,7 +73,7 @@ async function createTestUser() {
       .limit(1);
 
     if (selectError) {
-      console.log('Error checking existing user:', selectError.message);
+      console.log('Error checking test user:', selectError.message);
       return;
     }
 
@@ -148,7 +99,7 @@ async function createTestUser() {
       console.log('✅ Test user already exists');
     }
   } catch (error) {
-    console.log('Error in createTestUser:', error);
+    console.log('Error in ensureTestUser:', error);
   }
 }
 
