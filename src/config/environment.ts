@@ -21,7 +21,7 @@ interface Config {
 const config: Config = {
   port: parseInt(process.env.PORT || '3000', 10),
   nodeEnv: process.env.NODE_ENV || 'development',
-  databaseUrl: process.env.DATABASE_URL || 'postgresql://postgres:Qwer63722484!@db.cyitrtjkoqxkolvtsydx.supabase.co:5432/postgres',
+  databaseUrl: process.env.DATABASE_URL || 'postgresql://localhost:5432/goldenfish',
   redisUrl: process.env.REDIS_URL || 'redis://localhost:6379',
   resendApiKey: process.env.RESEND_API_KEY || 're_jTuYL41J_DpqE9iM23spyFRds7R8rua9x',
   emailFrom: process.env.EMAIL_FROM || 'onlineorder@ringorderai.com',
