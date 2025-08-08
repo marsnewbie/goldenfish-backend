@@ -39,7 +39,7 @@ router.post('/signin', standardLimiter, async (req: Request, res: Response) => {
 
     const { email, password } = value;
 
-    // Find user by email
+    // Find user by email using Supabase client
     const userResult = await db.query(
       `SELECT 
          id, email, first_name, last_name, phone, password_hash, 

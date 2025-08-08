@@ -121,15 +121,35 @@ app.get('/debug/database', async (_req: Request, res: Response) => {
 app.use('/api/orders', orderRoutes);
 app.use('/api/auth', authRoutes); // Traditional JWT authentication
 
-// Migration endpoint (for Railway deployment)
+// Database initialization endpoint
 app.post('/migrate', async (_req: Request, res: Response) => {
   try {
-    const { runMigrations } = await import('./migrations/run');
-    await runMigrations();
-    res.json({ success: true, message: 'Database migrations completed successfully' });
+    console.log('🔄 Initializing Supabase database...');
+    const { initializeDatabase } = await import('./config/init-database');
+    const result = await initializeDatabase();
+    
+    if (result.success) {
+      res.json({
+        success: true,
+        message: 'Database initialized successfully',
+        timestamp: new Date().toISOString()
+      });
+    } else {
+      res.status(500).json({
+        success: false,
+        error: 'Database initialization failed',
+        details: result.error,
+        timestamp: new Date().toISOString()
+      });
+    }
   } catch (error) {
-    console.error('Migration failed:', error);
-    res.status(500).json({ success: false, error: 'Migration failed', details: error instanceof Error ? error.message : 'Unknown error' });
+    console.error('❌ Database initialization failed:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Database initialization failed',
+      details: error instanceof Error ? error.message : 'Unknown error',
+      timestamp: new Date().toISOString()
+    });
   }
 });
 
