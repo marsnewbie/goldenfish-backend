@@ -1,7 +1,8 @@
-import { supabase } from './supabase-client';
+// Database initialization and verification
+const { supabase } = require('./supabase-client');
 
 // Simplified database initialization - checks if tables exist
-export async function initializeDatabase() {
+async function initializeDatabase() {
   console.log('🔄 Checking Supabase database tables...');
 
   try {
@@ -9,6 +10,7 @@ export async function initializeDatabase() {
     await checkUsersTable();
     await checkUserAddressesTable();
     await checkOrdersTable();
+    await checkMenuItemsTable();
     await ensureTestUser();
     
     console.log('✅ Database verification completed successfully');
@@ -16,7 +18,10 @@ export async function initializeDatabase() {
     
   } catch (error) {
     console.error('❌ Database verification failed:', error);
-    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    };
   }
 }
 
@@ -28,7 +33,7 @@ async function checkUsersTable() {
     
   if (error) {
     console.log('❌ Users table does not exist or is not accessible');
-    console.log('Please run setup-supabase-tables.sql in Supabase Dashboard');
+    console.log('Please run CREATE_TABLES_MANUALLY.sql in Supabase Dashboard');
     throw new Error('Users table missing');
   } else {
     console.log('✅ Users table exists');
@@ -63,6 +68,20 @@ async function checkOrdersTable() {
   }
 }
 
+async function checkMenuItemsTable() {
+  const { error } = await supabase
+    .from('menu_items')
+    .select('id')
+    .limit(1);
+    
+  if (error) {
+    console.log('❌ Menu items table does not exist or is not accessible');
+    throw new Error('Menu items table missing');
+  } else {
+    console.log('✅ Menu items table exists');
+  }
+}
+
 async function ensureTestUser() {
   try {
     // Check if test user exists
@@ -87,13 +106,14 @@ async function ensureTestUser() {
           last_name: 'User',
           phone: '01904123456',
           password_hash: '$2a$12$rMaFzFz7qQq5rNgZJ7cFl.wJ8rV5x5XzKd5pXJ9Zq5pqZrTlrOxkG', // test123
-          status: 'active'
+          status: 'active',
+          role: 'admin'
         });
 
       if (error) {
         console.log('Test user creation error:', error.message);
       } else {
-        console.log('✅ Test user created: test@goldenfish.co.uk / test123');
+        console.log('✅ Test admin user created: test@goldenfish.co.uk / test123');
       }
     } else {
       console.log('✅ Test user already exists');
@@ -103,5 +123,4 @@ async function ensureTestUser() {
   }
 }
 
-// Export for use in app startup
-export default initializeDatabase;
+module.exports = { initializeDatabase };
