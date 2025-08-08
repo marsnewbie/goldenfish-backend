@@ -2,19 +2,17 @@ import { Pool } from 'pg';
 import { createClient } from 'redis';
 import config from './environment';
 
-// PostgreSQL connection pool with IPv4 preference
+// PostgreSQL connection pool - use individual params to avoid IPv6
 export const db = new Pool({
-  connectionString: config.databaseUrl,
-  ssl: config.nodeEnv === 'production' ? { rejectUnauthorized: false } : undefined,
-  max: 20,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
-  // Force IPv4 connection for Railway compatibility
   host: 'db.cyitrtjkoqxkolvtsydx.supabase.co',
   port: 5432,
   database: 'postgres',
   user: 'postgres',
-  password: 'Qwer63722484!'
+  password: 'Qwer63722484!',
+  ssl: { rejectUnauthorized: false },
+  max: 20,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 5000,
 });
 
 // Redis client
