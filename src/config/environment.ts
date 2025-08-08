@@ -10,7 +10,6 @@ interface Config {
   resendApiKey: string;
   emailFrom: string;
   jwtSecret: string;
-  supabaseServiceKey: string;
   corsOrigins: string[];
   orderNumberPrefix: string;
   defaultPrepTimes: {
@@ -27,7 +26,6 @@ const config: Config = {
   resendApiKey: process.env.RESEND_API_KEY || 're_jTuYL41J_DpqE9iM23spyFRds7R8rua9x',
   emailFrom: process.env.EMAIL_FROM || 'onlineorder@ringorderai.com',
   jwtSecret: process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-in-production',
-  supabaseServiceKey: process.env.SUPABASE_SERVICE_KEY || '',
   corsOrigins: process.env.CORS_ORIGINS?.split(',') || [
     'https://test-ordering-page.vercel.app',
     'http://localhost:3000',
@@ -41,7 +39,7 @@ const config: Config = {
 };
 
 // Validate required environment variables
-const requiredVars = ['DATABASE_URL', 'REDIS_URL', 'RESEND_API_KEY', 'SUPABASE_SERVICE_KEY'];
+const requiredVars = ['DATABASE_URL', 'RESEND_API_KEY'];
 requiredVars.forEach(varName => {
   if (!process.env[varName] && config.nodeEnv === 'production') {
     console.error(`❌ Missing required environment variable: ${varName}`);
