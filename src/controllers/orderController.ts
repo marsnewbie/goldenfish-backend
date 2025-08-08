@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { OrderService } from '../services/orderService';
-import { CreateOrderData, OrderStatusUpdate } from '../models/Order';
+import { CreateOrderData } from '../models/Order';
 import Joi from 'joi';
 
 // Validation schemas - Updated for modern checkout
@@ -232,7 +232,7 @@ export class OrderController {
       }
 
       // Validate request data
-      const { error, value } = updateOrderStatusSchema.validate(req.body);
+      const { error } = updateOrderStatusSchema.validate(req.body);
       if (error) {
         res.status(400).json({
           success: false,
