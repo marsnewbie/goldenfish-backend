@@ -25,7 +25,7 @@ const validateCreateOrder = [
     .withMessage('Please provide a valid email address'),
   
   body('customer.phone')
-    .matches(/^(\\+44|0)[1-9]\\d{8,10}$/)
+    .matches(/^(\+44|0)[1-9]\d{8,10}$/)
     .withMessage('Please provide a valid UK phone number'),
   
   body('items')
@@ -46,8 +46,8 @@ const validateCreateOrder = [
     .withMessage('Item quantity must be at least 1'),
   
   body('delivery.method')
-    .isIn(['delivery', 'pickup'])
-    .withMessage('Delivery method must be either delivery or pickup'),
+    .isIn(['delivery', 'pickup', 'collection'])
+    .withMessage('Delivery method must be delivery, pickup, or collection'),
   
   body('totals.subtotal')
     .isFloat({ min: 0 })
