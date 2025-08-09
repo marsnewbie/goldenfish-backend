@@ -45,6 +45,7 @@ const corsOptions = {
       'https://test-ordering-page.vercel.app',
       'https://test-ordering-page-n972bpb27-marssnewbies-projects.vercel.app',
       'https://test-ordering-page-8o86t38oj-marssnewbies-projects.vercel.app',
+      'https://test-ordering-page-7uyo7c7i6-marssnewbies-projects.vercel.app',
       'http://localhost:3000',
       'http://localhost:5173',
       'http://127.0.0.1:3000',
