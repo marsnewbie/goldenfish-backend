@@ -172,6 +172,55 @@ app.post('/api/init-db', async (req, res) => {
   }
 });
 
+// Database migration endpoint (for schema updates)
+app.post('/api/migrate-db', async (req, res) => {
+  try {
+    console.log('🔄 Database migration requested...');
+    
+    // For security, require admin key
+    const adminKey = req.headers['x-admin-key'];
+    if (adminKey !== process.env.ADMIN_KEY && adminKey !== 'goldenfish_admin_2025') {
+      return res.status(403).json({
+        success: false,
+        message: 'Admin key required for database migration'
+      });
+    }
+
+    const fs = require('fs');
+    const path = require('path');
+    const { supabase } = require('./config/supabase-client');
+    
+    // Read migration SQL file
+    const migrationPath = path.join(__dirname, 'migrations', 'add_order_fields.sql');
+    const migrationSQL = fs.readFileSync(migrationPath, 'utf8');
+    
+    // Execute migration
+    const { data, error } = await supabase.rpc('exec_sql', {
+      sql_query: migrationSQL
+    });
+    
+    if (error) {
+      throw error;
+    }
+    
+    res.json({
+      success: true,
+      message: 'Database migration completed successfully',
+      details: 'Missing fields added to orders table',
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error('❌ Database migration error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Database migration failed',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 // Root endpoint - API information
 app.get('/', (req, res) => {
   res.json({
