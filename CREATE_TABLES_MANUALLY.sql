@@ -39,34 +39,6 @@ CREATE TABLE user_addresses (
   updated_at TIMESTAMP DEFAULT NOW()
 );
 
--- 4. Create orders table
-CREATE TABLE orders (
-  id SERIAL PRIMARY KEY,
-  user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
-  order_number VARCHAR(50) UNIQUE NOT NULL,
-  status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'confirmed', 'preparing', 'ready', 'completed', 'cancelled')),
-  -- Customer information
-  customer_name VARCHAR(200),
-  customer_phone VARCHAR(20),
-  customer_email VARCHAR(255),
-  customer_address TEXT,
-  -- Order totals
-  total_amount DECIMAL(10,2),
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW()
-);
-
--- 5. Create order_items table (individual items in each order)
-CREATE TABLE order_items (
-  id SERIAL PRIMARY KEY,
-  order_id INTEGER REFERENCES orders(id) ON DELETE CASCADE,
-  product_id INTEGER REFERENCES products(id) ON DELETE CASCADE,
-  quantity INTEGER NOT NULL DEFAULT 1,
-  unit_price DECIMAL(10,2) NOT NULL,
-  total_price DECIMAL(10,2) NOT NULL,
-  options_summary TEXT, -- JSON or text summary of chosen options
-  created_at TIMESTAMP DEFAULT NOW()
-);
 
 -- 5. Create categories table
 CREATE TABLE categories (
@@ -113,7 +85,36 @@ CREATE TABLE product_option_choices (
   created_at TIMESTAMP DEFAULT NOW()
 );
 
--- 9. Create indexes for performance
+-- 9. Create orders table (after users table is created)
+CREATE TABLE orders (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+  order_number VARCHAR(50) UNIQUE NOT NULL,
+  status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'confirmed', 'preparing', 'ready', 'completed', 'cancelled')),
+  -- Customer information
+  customer_name VARCHAR(200),
+  customer_phone VARCHAR(20),
+  customer_email VARCHAR(255),
+  customer_address TEXT,
+  -- Order totals
+  total_amount DECIMAL(10,2),
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- 10. Create order_items table (individual items in each order)
+CREATE TABLE order_items (
+  id SERIAL PRIMARY KEY,
+  order_id INTEGER REFERENCES orders(id) ON DELETE CASCADE,
+  product_id INTEGER REFERENCES products(id) ON DELETE CASCADE,
+  quantity INTEGER NOT NULL DEFAULT 1,
+  unit_price DECIMAL(10,2) NOT NULL,
+  total_price DECIMAL(10,2) NOT NULL,
+  options_summary TEXT, -- JSON or text summary of chosen options
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- 11. Create indexes for performance
 CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_users_status ON users(status);
 CREATE INDEX idx_user_addresses_user_id ON user_addresses(user_id);
@@ -139,7 +140,7 @@ VALUES (
   'active'
 ) ON CONFLICT (email) DO NOTHING;
 
--- 10. Insert sample categories
+-- 12. Insert sample categories
 INSERT INTO categories (name, sort_order) VALUES
 ('Appetisers', 1),
 ('Soup', 2),
@@ -148,7 +149,7 @@ INSERT INTO categories (name, sort_order) VALUES
 ('Rice & Noodles', 5),
 ('Drinks', 6);
 
--- 11. Insert sample products (based on Wonderful Chinese menu)
+-- 13. Insert sample products (based on Wonderful Chinese menu)
 INSERT INTO products (name, description, price, category_id, spicy, vegetarian, available, featured, sort_order) VALUES
 -- Appetisers (category_id = 1)
 ('Special Mixed Hors D''oeuvres', 'Minimum for 2 Persons. Served with Sweet & Sour Sauce. Includes Seaweed, Sesame Prawn Toast, Mini Spring Rolls, Spare Ribs, Crispy Won Tons & Chicken Wings.', 11.70, 1, false, false, true, true, 1),
@@ -177,16 +178,16 @@ INSERT INTO products (name, description, price, category_id, spicy, vegetarian, 
 ('Coca Cola (can)', 'Classic Coca Cola', 2.00, 6, false, true, true, false, 2),
 ('Fresh Orange Juice', 'Freshly squeezed orange juice', 3.80, 6, false, true, true, false, 3);
 
--- 12. Insert product options (for Crispy Aromatic Duck - product_id should be 3)
+-- 14. Insert product options (for Crispy Aromatic Duck - product_id should be 3)
 INSERT INTO product_options (product_id, name, required) VALUES (3, 'Choose Portion', TRUE);
 
--- 13. Insert product option choices (assuming the above option got id = 1)
+-- 15. Insert product option choices (assuming the above option got id = 1)
 INSERT INTO product_option_choices (product_option_id, name, additional_price, sort_order) VALUES
 (1, 'Quarter (for 2 persons)', 9.50, 1),
 (1, 'Half (for 3-4 persons)', 18.00, 2),
 (1, 'Whole (for 6-8 persons)', 34.00, 3);
 
--- 14. Create admin user (password: admin123)
+-- 16. Create admin user (password: admin123)
 INSERT INTO users (email, first_name, last_name, phone, password_hash, role, status)
 VALUES (
   'admin@goldenfish.co.uk', 
@@ -198,20 +199,20 @@ VALUES (
   'active'
 ) ON CONFLICT (email) DO NOTHING;
 
--- 15. Reload schema cache
+-- 17. Reload schema cache
 NOTIFY pgrst, 'reload schema';
 
--- 16. Verify setup
+-- 18. Verify setup
 SELECT 'Database setup completed successfully!' as result;
 
--- 17. Show created tables
+-- 19. Show created tables
 SELECT table_name 
 FROM information_schema.tables 
 WHERE table_schema = 'public' 
 AND table_name IN ('users', 'user_addresses', 'orders', 'order_items', 'categories', 'products', 'product_options', 'product_option_choices')
 ORDER BY table_name;
 
--- 18. Show test data
+-- 20. Show test data
 SELECT 'Test Users:' as info;
 SELECT id, email, first_name, last_name, role FROM users;
 
