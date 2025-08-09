@@ -32,6 +32,8 @@ class Order {
     this.paymentMethod = data.payment_method || data.paymentMethod || 'cash';
     this.paymentStatus = data.payment_status || data.paymentStatus || 'pending';
     this.estimatedTime = parseInt(data.estimated_time || data.estimatedTime || 30);
+    this.selectedTime = data.selected_time || data.selectedTime || null; // Customer requested time
+    this.deliveryPostcode = data.delivery_postcode || data.deliveryPostcode || null;
     
     this.createdAt = data.created_at || data.createdAt;
     this.updatedAt = data.updated_at || data.updatedAt;
@@ -65,7 +67,15 @@ class Order {
       customer_phone: orderData.customer?.phone,
       customer_email: orderData.customer?.email,
       customer_address: orderData.customer?.address,
-      total_amount: totalAmount
+      delivery_type: orderData.delivery?.method || 'pickup',
+      delivery_address: orderData.delivery?.address || null,
+      delivery_postcode: orderData.delivery?.postcode || null,
+      delivery_instructions: orderData.delivery?.instructions || null,
+      selected_time: orderData.delivery?.selectedTime || null,
+      delivery_fee: parseFloat(orderData.totals?.delivery || 0),
+      subtotal: parseFloat(orderData.totals?.subtotal || 0),
+      total_amount: parseFloat(orderData.totals?.total || totalAmount),
+      special_instructions: orderData.specialInstructions || null
     };
 
     // Insert order
@@ -376,7 +386,9 @@ class Order {
       delivery: {
         type: this.deliveryType,
         address: this.deliveryAddress,
-        instructions: this.deliveryInstructions
+        postcode: this.deliveryPostcode,
+        instructions: this.deliveryInstructions,
+        selectedTime: this.selectedTime
       },
       pricing: {
         subtotal: this.subtotal,

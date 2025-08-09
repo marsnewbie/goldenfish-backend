@@ -25,8 +25,28 @@ const validateCreateOrder = [
     .withMessage('Please provide a valid email address'),
   
   body('customer.phone')
-    .matches(/^(\+44|0)[1-9]\d{8,10}$/)
-    .withMessage('Please provide a valid UK phone number'),
+    .custom((value) => {
+      // Remove spaces and normalize the phone number
+      const cleaned = value.replace(/[\s\-\(\)]/g, '');
+      
+      // Handle different UK mobile formats
+      let normalized = cleaned;
+      if (normalized.startsWith('+447')) {
+        normalized = '0' + normalized.substring(3);
+      } else if (normalized.startsWith('447')) {
+        normalized = '0' + normalized.substring(2);
+      } else if (normalized.startsWith('7') && normalized.length === 10) {
+        normalized = '0' + normalized;
+      }
+      
+      // Validate UK mobile format: 07xxxxxxxxx (11 digits total)
+      const ukMobileRegex = /^07[0-9]{9}$/;
+      if (!ukMobileRegex.test(normalized)) {
+        throw new Error('Please provide a valid UK mobile number');
+      }
+      
+      return true;
+    }),
   
   body('items')
     .isArray({ min: 1 })
@@ -48,6 +68,29 @@ const validateCreateOrder = [
   body('delivery.method')
     .isIn(['delivery', 'pickup', 'collection'])
     .withMessage('Delivery method must be delivery, pickup, or collection'),
+
+  // Delivery address validation (required for delivery)
+  body('delivery.address')
+    .if(body('delivery.method').equals('delivery'))
+    .notEmpty()
+    .withMessage('Delivery address is required for delivery orders'),
+
+  body('delivery.postcode')
+    .if(body('delivery.method').equals('delivery'))
+    .matches(/^[A-Z]{1,2}[0-9]{1,2}\s?[0-9][A-Z]{2}$/i)
+    .withMessage('Please provide a valid UK postcode'),
+
+  // Selected time validation (optional but if provided should be valid)
+  body('delivery.selectedTime')
+    .optional()
+    .matches(/^(asap|([01]?[0-9]|2[0-3]):[0-5][0-9])$/i)
+    .withMessage('Selected time must be either "asap" or in HH:MM format'),
+
+  // Delivery fee validation (for delivery orders)
+  body('totals.delivery')
+    .optional()
+    .isFloat({ min: 0 })
+    .withMessage('Delivery fee must be a positive number'),
   
   body('totals.subtotal')
     .isFloat({ min: 0 })
@@ -115,7 +158,10 @@ router.post('/', standardLimiter, optionalAuth, validateCreateOrder, async (req,
       success: true,
       message: 'Order created successfully',
       data: {
-        order: order.toJSON()
+        order: order.toJSON(),
+        orderNumber: order.orderNumber,  // Frontend expects this directly
+        orderId: order.id,
+        total: order.total
       }
     });
 
