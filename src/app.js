@@ -10,6 +10,7 @@ const userRoutes = require('./routes/users');
 const orderRoutes = require('./routes/orders');
 const menuRoutes = require('./routes/menu');
 const authRoutes = require('./routes/auth'); // Legacy compatibility
+const deliveryRoutes = require('./routes/delivery'); // 企业级送餐费计算
 
 // Import middleware
 const { standardLimiter } = require('./middleware/rateLimiter');
@@ -41,23 +42,36 @@ const corsOptions = {
     // Allow requests with no origin (like mobile apps or curl)
     if (!origin) return callback(null, true);
     
+    // 智能CORS配置 - 支持动态Vercel URL和开发环境
     const allowedOrigins = [
-      'https://test-ordering-page.vercel.app',
-      'https://test-ordering-page-n972bpb27-marssnewbies-projects.vercel.app',
-      'https://test-ordering-page-8o86t38oj-marssnewbies-projects.vercel.app',
-      'https://test-ordering-page-7uyo7c7i6-marssnewbies-projects.vercel.app',
+      'https://test-ordering-page.vercel.app', // 生产域名
+      // 开发环境
       'http://localhost:3000',
       'http://localhost:5173',
       'http://127.0.0.1:3000',
       'http://127.0.0.1:5173',
+      // 环境变量中的额外域名
       ...(process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS.split(',') : [])
     ];
+
+    // 检查是否为Vercel预览部署URL
+    const isVercelPreviewURL = (origin) => {
+      return origin && (
+        origin.startsWith('https://test-ordering-page-') && 
+        origin.includes('-marssnewbies-projects.vercel.app')
+      );
+    };
     
-    if (allowedOrigins.indexOf(origin) !== -1) {
+    if (allowedOrigins.indexOf(origin) !== -1 || isVercelPreviewURL(origin)) {
+      if (isVercelPreviewURL(origin)) {
+        console.log('✅ CORS allowed for Vercel preview:', origin);
+      }
       callback(null, true);
     } else {
-      console.warn('CORS blocked origin:', origin);
-      callback(null, true); // Allow all for now - tighten in production
+      console.warn('❌ CORS blocked origin:', origin);
+      // 在开发环境允许所有域名，生产环境严格控制
+      const allowInDevelopment = process.env.NODE_ENV !== 'production';
+      callback(null, allowInDevelopment);
     }
   },
   credentials: true,
@@ -137,6 +151,7 @@ app.use('/api/users', userRoutes);     // User registration, login, profile
 app.use('/api/menu', menuRoutes);      // Menu items CRUD
 app.use('/api/orders', orderRoutes);   // Order management
 app.use('/api/auth', authRoutes);      // Legacy auth compatibility
+app.use('/api/delivery', deliveryRoutes); // 企业级送餐费计算
 
 // Database initialization endpoint (for manual setup)
 app.post('/api/init-db', async (req, res) => {
