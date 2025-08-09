@@ -165,7 +165,7 @@ INSERT INTO products (name, description, price, category_id, spicy, vegetarian, 
 
 -- Vegetarian (category_id = 4)
 ('Ma Po Tofu', 'Silky tofu in spicy Sichuan sauce', 10.50, 4, true, true, true, false, 1),
-('Buddha\'s Delight', 'Mixed vegetables and tofu in brown sauce', 11.20, 4, false, true, true, true, 2),
+('Buddha''s Delight', 'Mixed vegetables and tofu in brown sauce', 11.20, 4, false, true, true, true, 2),
 ('Sweet & Sour Vegetables', 'Mixed vegetables in sweet & sour sauce', 9.80, 4, false, true, true, false, 3),
 
 -- Rice & Noodles (category_id = 5)
