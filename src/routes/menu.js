@@ -92,52 +92,81 @@ const validateMenuQuery = [
 ];
 
 // @route   GET /api/menu
-// @desc    Get all menu items with optional filtering
+// @desc    Get complete menu data (categories + products + options)
 // @access  Public
-router.get('/', standardLimiter, validateMenuQuery, async (req, res) => {
+router.get('/', standardLimiter, async (req, res) => {
   try {
-    console.log('📋 Fetching menu items with filters:', req.query);
+    console.log('📋 Fetching complete menu data');
 
-    // Check validation errors
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        message: 'Validation failed',
-        errors: errors.array().map(err => err.msg)
-      });
+    // Fetch categories
+    const { data: categories, error: catError } = await require('../config/supabase-client').supabase
+      .from('categories')
+      .select('*')
+      .order('sort_order');
+
+    if (catError) {
+      console.error('Categories fetch error:', catError);
+      throw catError;
     }
 
-    const { category, featured, spicy, vegetarian, search } = req.query;
-    
-    // Build filters object
-    const filters = {};
-    if (category) filters.category = category;
-    if (featured !== undefined) filters.featured = featured === 'true';
-    if (spicy !== undefined) filters.spicy = spicy === 'true';
-    if (vegetarian !== undefined) filters.vegetarian = vegetarian === 'true';
+    // Fetch products
+    const { data: products, error: prodError } = await require('../config/supabase-client').supabase
+      .from('products')
+      .select('*')
+      .eq('available', true)
+      .order('category_id, sort_order, name');
 
-    let menuItems;
-    if (search) {
-      menuItems = await MenuItem.search(search, filters);
-    } else {
-      menuItems = await MenuItem.findAll(filters);
+    if (prodError) {
+      console.error('Products fetch error:', prodError);
+      throw prodError;
     }
 
-    console.log(`✅ Found ${menuItems.length} menu items`);
+    // Fetch product options with choices
+    const { data: options, error: optError } = await require('../config/supabase-client').supabase
+      .from('product_options')
+      .select(`
+        id, 
+        name, 
+        required, 
+        product_id,
+        product_option_choices (
+          id,
+          name,
+          additional_price,
+          sort_order
+        )
+      `)
+      .order('product_id');
+
+    if (optError) {
+      console.error('Options fetch error:', optError);
+      throw optError;
+    }
+
+    // Attach options to products
+    const productsWithOptions = products.map(prod => {
+      const productOptions = options
+        .filter(opt => opt.product_id === prod.id)
+        .map(opt => ({
+          id: opt.id,
+          name: opt.name,
+          required: opt.required,
+          choices: (opt.product_option_choices || []).sort((a, b) => a.sort_order - b.sort_order)
+        }));
+      
+      return {
+        ...prod,
+        options: productOptions
+      };
+    });
+
+    console.log(`✅ Found ${categories.length} categories, ${products.length} products, ${options.length} option groups`);
 
     res.json({
       success: true,
       data: {
-        items: menuItems.map(item => item.toJSON()),
-        total: menuItems.length,
-        filters: {
-          category: category || null,
-          featured: featured !== undefined ? featured === 'true' : null,
-          spicy: spicy !== undefined ? spicy === 'true' : null,
-          vegetarian: vegetarian !== undefined ? vegetarian === 'true' : null,
-          search: search || null
-        }
+        categories: categories || [],
+        products: productsWithOptions || []
       }
     });
 
@@ -145,7 +174,7 @@ router.get('/', standardLimiter, validateMenuQuery, async (req, res) => {
     console.error('❌ Menu fetch error:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch menu items'
+      message: 'Failed to fetch menu data'
     });
   }
 });

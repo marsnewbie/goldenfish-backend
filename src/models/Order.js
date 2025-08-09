@@ -46,75 +46,115 @@ class Order {
     return `GF${datePart}${timePart}${randomPart}`;
   }
 
-  // Create new order
+  // Create new order with order_items
   static async create(orderData) {
     this.validateCreateInput(orderData);
     
     const orderNumber = this.generateOrderNumber();
     
+    // Calculate total amount
+    const totalAmount = orderData.items.reduce((sum, item) => 
+      sum + (item.total_price || (item.unit_price * item.quantity)), 0);
+    
     // Prepare order data for database
-    const dbData = {
+    const orderDbData = {
       order_number: orderNumber,
-      user_id: orderData.customer.id || null,
-      customer_name: `${orderData.customer.firstName} ${orderData.customer.lastName}`.trim(),
-      customer_email: orderData.customer.email,
-      customer_phone: orderData.customer.phone,
-      items: JSON.stringify(orderData.items || []),
-      delivery_type: orderData.delivery.method === 'delivery' ? 'delivery' : 'pickup',
-      delivery_address: orderData.delivery.method === 'delivery' ? JSON.stringify({
-        street: orderData.delivery.address,
-        city: orderData.delivery.city,
-        postcode: orderData.delivery.postcode,
-        instructions: orderData.delivery.instructions
-      }) : null,
-      special_instructions: orderData.specialInstructions,
-      subtotal: orderData.totals.subtotal,
-      delivery_fee: orderData.totals.deliveryFee || 0,
-      discount: orderData.totals.discount || 0,
-      total: orderData.totals.total,
-      payment_method: orderData.payment?.method || 'cash',
-      payment_status: 'pending',
-      status: 'received',
-      estimated_time: this.calculateEstimatedTime(orderData.items || [])
+      user_id: orderData.customer?.id || null,
+      status: 'pending',
+      customer_name: orderData.customer ? `${orderData.customer.firstName || ''} ${orderData.customer.lastName || ''}`.trim() : null,
+      customer_phone: orderData.customer?.phone,
+      customer_email: orderData.customer?.email,
+      customer_address: orderData.customer?.address,
+      total_amount: totalAmount
     };
 
-    const { data, error } = await supabase
+    // Insert order
+    const { data: newOrder, error: orderError } = await supabase
       .from('orders')
-      .insert(dbData)
-      .select()
+      .insert([orderDbData])
+      .select('id')
       .single();
     
-    if (error) {
-      console.error('Error creating order:', error);
+    if (orderError) {
+      console.error('Error creating order:', orderError);
       throw new Error('Failed to create order');
+    }
+    
+    const orderId = newOrder.id;
+
+    // Prepare order_items data
+    const orderItemsData = orderData.items.map(item => ({
+      order_id: orderId,
+      product_id: item.product_id,
+      quantity: item.quantity,
+      unit_price: item.unit_price,
+      total_price: item.total_price || (item.unit_price * item.quantity),
+      options_summary: item.options && item.options.length > 0 ? 
+        item.options.map(opt => opt.name).join(', ') : null
+    }));
+
+    // Insert order items
+    const { error: orderItemsError } = await supabase
+      .from('order_items')
+      .insert(orderItemsData);
+    
+    if (orderItemsError) {
+      console.error('Error creating order items:', orderItemsError);
+      throw new Error('Failed to create order items');
     }
     
     console.log('✅ Order created successfully:', {
       orderNumber,
-      total: data.total,
-      items: orderData.items?.length || 0
+      orderId,
+      totalAmount,
+      itemCount: orderData.items.length
     });
 
-    return new Order(data);
+    // Return the complete order with items
+    return this.findById(orderId);
   }
 
-  // Find order by ID
+  // Find order by ID with order_items
   static async findById(id) {
-    const { data, error } = await supabase
+    const { data: orderData, error: orderError } = await supabase
       .from('orders')
       .select('*')
       .eq('id', id)
       .single();
     
-    if (error) {
-      if (error.code === 'PGRST116') {
+    if (orderError) {
+      if (orderError.code === 'PGRST116') {
         return null;
       }
-      console.error('Error finding order:', error);
+      console.error('Error finding order:', orderError);
       throw new Error('Failed to find order');
     }
+
+    if (!orderData) return null;
+
+    // Get order items
+    const { data: orderItems, error: itemsError } = await supabase
+      .from('order_items')
+      .select(`
+        *,
+        products (
+          id,
+          name,
+          description,
+          price
+        )
+      `)
+      .eq('order_id', id);
     
-    return data ? new Order(data) : null;
+    if (itemsError) {
+      console.error('Error finding order items:', itemsError);
+      throw new Error('Failed to find order items');
+    }
+    
+    return new Order({
+      ...orderData,
+      items: orderItems || []
+    });
   }
 
   // Find order by order number
