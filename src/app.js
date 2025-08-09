@@ -43,6 +43,7 @@ const corsOptions = {
     
     const allowedOrigins = [
       'https://test-ordering-page.vercel.app',
+      'https://test-ordering-page-n972bpb27-marssnewbies-projects.vercel.app',
       'http://localhost:3000',
       'http://localhost:5173',
       'http://127.0.0.1:3000',
