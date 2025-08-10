@@ -22,10 +22,10 @@ class User {
     const { firstName, lastName, email, phone, password } = userData;
     
     // Validate input
-    this.validateCreateInput({ firstName, lastName, email, phone, password });
+    User.validateCreateInput({ firstName, lastName, email, phone, password });
     
     // Check if user already exists
-    const existingUser = await this.findByEmail(email);
+    const existingUser = await User.findByEmail(email);
     if (existingUser) {
       throw new Error('User with this email already exists');
     }
@@ -184,12 +184,12 @@ class User {
     }
     
     // Email validation
-    if (!email || !this.isValidEmail(email)) {
+    if (!email || !User.isValidEmail(email)) {
       errors.push('Valid email address is required');
     }
     
     // Phone validation
-    if (!phone || !this.isValidPhone(phone)) {
+    if (!phone || !User.isValidPhone(phone)) {
       errors.push('Valid UK phone number is required');
     }
     

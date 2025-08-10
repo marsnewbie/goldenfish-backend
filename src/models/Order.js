@@ -1,5 +1,6 @@
 // Order model for order management
 const { supabase } = require('../config/supabase-client');
+const emailService = require('../services/EmailService');
 
 class Order {
   constructor(data) {
@@ -120,8 +121,29 @@ class Order {
       itemCount: orderData.items.length
     });
 
+    // Get the complete order with items for email
+    const completeOrder = await Order.findById(orderId);
+    
+    // Send email confirmations asynchronously (don't block order response)
+    if (completeOrder) {
+      setImmediate(async () => {
+        try {
+          // Send customer confirmation email
+          await emailService.sendOrderConfirmation(completeOrder.toJSON());
+          
+          // Send admin notification email
+          await emailService.sendOrderNotification(completeOrder.toJSON());
+          
+          console.log('✅ Email notifications sent for order:', orderNumber);
+        } catch (emailError) {
+          console.error('⚠️ Email notification failed for order:', orderNumber, emailError.message);
+          // Don't fail the order if emails fail
+        }
+      });
+    }
+
     // Return the complete order with items
-    return Order.findById(orderId);
+    return completeOrder;
   }
 
   // Find order by ID with order_items
