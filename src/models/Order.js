@@ -52,7 +52,7 @@ class Order {
   static async create(orderData) {
     Order.validateCreateInput(orderData);
     
-    const orderNumber = this.generateOrderNumber();
+    const orderNumber = Order.generateOrderNumber();
     
     // Calculate total amount
     const totalAmount = orderData.items.reduce((sum, item) => 
