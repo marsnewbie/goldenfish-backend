@@ -50,7 +50,7 @@ class Order {
 
   // Create new order with order_items
   static async create(orderData) {
-    this.validateCreateInput(orderData);
+    Order.validateCreateInput(orderData);
     
     const orderNumber = this.generateOrderNumber();
     
@@ -121,7 +121,7 @@ class Order {
     });
 
     // Return the complete order with items
-    return this.findById(orderId);
+    return Order.findById(orderId);
   }
 
   // Find order by ID with order_items
