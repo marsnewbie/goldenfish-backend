@@ -5,7 +5,7 @@ class EmailService {
   constructor() {
     this.resend = new Resend(process.env.RESEND_API_KEY);
     this.fromEmail = 'Golden Fish <orders@goldenfish.co.uk>';
-    this.adminEmail = 'marsnewbie6655@gmail.com';
+    this.adminEmail = 'ringorderai@gmail.com';
   }
 
   // Send order confirmation email to customer
