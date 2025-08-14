@@ -155,37 +155,38 @@ app.use('/api/delivery', deliveryRoutes); // 企业级送餐费计算
 
 // Database initialization endpoint (for manual setup)
 app.post('/api/init-db', async (req, res) => {
-  try {
-    console.log('🔄 Manual database initialization requested...');
-    
-    // For security, require admin key
-    const adminKey = req.headers['x-admin-key'];
-    if (adminKey !== process.env.ADMIN_KEY && adminKey !== 'goldenfish_admin_2025') {
-      return res.status(403).json({
-        success: false,
-        message: 'Admin key required for database initialization'
-      });
+    try {
+        console.log('🔄 Manual database initialization requested...');
+        
+        // For security, require admin key
+        const adminKey = req.headers['x-admin-key'];
+        if (adminKey !== process.env.ADMIN_KEY && adminKey !== 'goldenfish_admin_2025') {
+            return res.status(403).json({
+                success: false,
+                message: 'Admin key required for database initialization'
+            });
+        }
+
+        const { simpleInit } = require('./config/simple-init');
+        const result = await simpleInit();
+        
+        res.json({
+            success: result.success,
+            message: result.success ? 'Database initialized successfully' : 'Database initialization failed',
+            details: result.error || 'All tables created and test data inserted',
+            restaurantId: result.restaurantId,
+            timestamp: new Date().toISOString()
+        });
+
+    } catch (error) {
+        console.error('❌ Database initialization error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Database initialization failed',
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
     }
-
-    const { initializeDatabase } = require('./config/init-database');
-    const result = await initializeDatabase();
-    
-    res.json({
-      success: result.success,
-      message: result.success ? 'Database initialized successfully' : 'Database initialization failed',
-      details: result.error || 'All tables created and test data inserted',
-      timestamp: new Date().toISOString()
-    });
-
-  } catch (error) {
-    console.error('❌ Database initialization error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Database initialization failed',
-      error: error.message,
-      timestamp: new Date().toISOString()
-    });
-  }
 });
 
 // Database migration endpoint (for schema updates)
