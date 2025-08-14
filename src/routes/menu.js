@@ -98,23 +98,12 @@ router.get('/', standardLimiter, async (req, res) => {
   try {
     console.log('📋 Fetching complete menu data');
 
-    // Fetch categories
-    const { data: categories, error: catError } = await require('../config/supabase-client').supabase
-      .from('categories')
-      .select('*')
-      .order('sort_order');
-
-    if (catError) {
-      console.error('Categories fetch error:', catError);
-      throw catError;
-    }
-
-    // Fetch menu items
+    // Fetch menu items directly
     const { data: products, error: prodError } = await require('../config/supabase-client').supabase
       .from('menu_items')
       .select('*')
       .eq('is_available', true)
-      .order('category_id, sort_order, name');
+      .order('sort_order, name');
 
     if (prodError) {
       console.error('Products fetch error:', prodError);
@@ -127,12 +116,12 @@ router.get('/', standardLimiter, async (req, res) => {
       options: []
     }));
 
-    console.log(`✅ Found ${categories.length} categories, ${products.length} products`);
+    console.log(`✅ Found ${products.length} products`);
 
     res.json({
       success: true,
       data: {
-        categories: categories || [],
+        categories: [],
         products: productsWithOptions || []
       }
     });
