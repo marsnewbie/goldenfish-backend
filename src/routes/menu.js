@@ -109,11 +109,11 @@ router.get('/', standardLimiter, async (req, res) => {
       throw catError;
     }
 
-    // Fetch products
+    // Fetch menu items
     const { data: products, error: prodError } = await require('../config/supabase-client').supabase
-      .from('products')
+      .from('menu_items')
       .select('*')
-      .eq('available', true)
+      .eq('is_available', true)
       .order('category_id, sort_order, name');
 
     if (prodError) {
@@ -121,46 +121,13 @@ router.get('/', standardLimiter, async (req, res) => {
       throw prodError;
     }
 
-    // Fetch product options with choices
-    const { data: options, error: optError } = await require('../config/supabase-client').supabase
-      .from('product_options')
-      .select(`
-        id, 
-        name, 
-        required, 
-        product_id,
-        product_option_choices (
-          id,
-          name,
-          additional_price,
-          sort_order
-        )
-      `)
-      .order('product_id');
+    // For now, return products without options (we'll add options later)
+    const productsWithOptions = products.map(prod => ({
+      ...prod,
+      options: []
+    }));
 
-    if (optError) {
-      console.error('Options fetch error:', optError);
-      throw optError;
-    }
-
-    // Attach options to products
-    const productsWithOptions = products.map(prod => {
-      const productOptions = options
-        .filter(opt => opt.product_id === prod.id)
-        .map(opt => ({
-          id: opt.id,
-          name: opt.name,
-          required: opt.required,
-          choices: (opt.product_option_choices || []).sort((a, b) => a.sort_order - b.sort_order)
-        }));
-      
-      return {
-        ...prod,
-        options: productOptions
-      };
-    });
-
-    console.log(`✅ Found ${categories.length} categories, ${products.length} products, ${options.length} option groups`);
+    console.log(`✅ Found ${categories.length} categories, ${products.length} products`);
 
     res.json({
       success: true,
