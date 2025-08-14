@@ -9,7 +9,7 @@ async function initializeDatabase() {
         const { data: restaurant, error: restaurantError } = await supabase
             .from('restaurants')
             .upsert({
-                id: 'golden-fish-001',
+                id: '550e8400-e29b-41d4-a716-446655440000',
                 name: 'Golden Fish',
                 description: 'Fresh Chinese Takeaway - Authentic flavors, made to order',
                 logo_url: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=200',
@@ -348,20 +348,10 @@ async function initializeDatabase() {
         ];
 
         // 创建配送区域表（如果不存在）
-        const { error: zoneTableError } = await supabase.rpc('exec_sql', {
-            sql_query: `
-                CREATE TABLE IF NOT EXISTS delivery_zones (
-                    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-                    restaurant_id UUID REFERENCES restaurants(id) ON DELETE CASCADE,
-                    postcode_prefix VARCHAR(10) NOT NULL,
-                    delivery_fee DECIMAL(10,2) NOT NULL,
-                    is_available BOOLEAN DEFAULT true,
-                    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-                );
-                
-                CREATE INDEX IF NOT EXISTS idx_delivery_zones_postcode ON delivery_zones(postcode_prefix);
-            `
-        });
+        const { error: zoneTableError } = await supabase
+            .from('delivery_zones')
+            .select('*')
+            .limit(1);
 
         if (zoneTableError) {
             console.log('⚠️ Delivery zones table might already exist');
