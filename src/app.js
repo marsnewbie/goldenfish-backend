@@ -167,8 +167,8 @@ app.post('/api/init-db', async (req, res) => {
             });
         }
 
-        const { simpleInit } = require('./config/simple-init');
-        const result = await simpleInit();
+        const { basicInit } = require('./config/basic-init');
+        const result = await basicInit();
         
         res.json({
             success: result.success,
