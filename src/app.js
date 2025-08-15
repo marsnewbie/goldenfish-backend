@@ -189,6 +189,58 @@ app.post('/api/init-db', async (req, res) => {
     }
 });
 
+// Test endpoint to check database tables
+app.get('/api/test-db', async (req, res) => {
+    try {
+        const { supabase } = require('./config/supabase-client');
+        
+        // Test restaurants table
+        const { data: restaurants, error: restError } = await supabase
+            .from('restaurants')
+            .select('*')
+            .limit(1);
+            
+        // Test menu_items table
+        const { data: menuItems, error: menuError } = await supabase
+            .from('menu_items')
+            .select('*')
+            .limit(1);
+            
+        // Test delivery_zones table
+        const { data: zones, error: zoneError } = await supabase
+            .from('delivery_zones')
+            .select('*')
+            .limit(1);
+        
+        res.json({
+            success: true,
+            tables: {
+                restaurants: {
+                    exists: !restError,
+                    count: restaurants?.length || 0,
+                    error: restError?.message
+                },
+                menu_items: {
+                    exists: !menuError,
+                    count: menuItems?.length || 0,
+                    error: menuError?.message
+                },
+                delivery_zones: {
+                    exists: !zoneError,
+                    count: zones?.length || 0,
+                    error: zoneError?.message
+                }
+            }
+        });
+        
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
 // Database migration endpoint (for schema updates)
 app.post('/api/migrate-db', async (req, res) => {
   try {
