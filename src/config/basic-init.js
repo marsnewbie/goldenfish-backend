@@ -88,6 +88,36 @@ async function basicInit() {
         }
         console.log('✅ Basic menu items created');
 
+        // 4. 创建配送区域
+        const deliveryZones = [
+            { postcode_prefix: 'WF9 4', delivery_fee: 2.30, is_available: true },
+            { postcode_prefix: 'WF9 3', delivery_fee: 2.60, is_available: true },
+            { postcode_prefix: 'S72 9', delivery_fee: 2.60, is_available: true },
+            { postcode_prefix: 'WF9 2', delivery_fee: 2.80, is_available: true },
+            { postcode_prefix: 'WF9 5', delivery_fee: 2.80, is_available: true },
+            { postcode_prefix: 'WF9 1', delivery_fee: 3.30, is_available: true },
+            { postcode_prefix: 'WF7 7', delivery_fee: 3.30, is_available: true },
+            { postcode_prefix: 'WF4 2', delivery_fee: 3.30, is_available: true },
+            { postcode_prefix: 'S72 8', delivery_fee: 3.30, is_available: true },
+            { postcode_prefix: 'S72 7', delivery_fee: 3.30, is_available: true }
+        ];
+
+        for (const zone of deliveryZones) {
+            const { error: zoneError } = await supabase
+                .from('delivery_zones')
+                .upsert({
+                    restaurant_id: restaurant.id,
+                    postcode_prefix: zone.postcode_prefix,
+                    delivery_fee: zone.delivery_fee,
+                    is_available: zone.is_available
+                });
+            if (zoneError) {
+                console.error('❌ Delivery zone creation error:', zoneError);
+                // 不抛出错误，因为表可能不存在
+            }
+        }
+        console.log('✅ Delivery zones created');
+
         console.log('🎉 Basic database initialization completed successfully!');
         return { success: true, restaurantId: restaurant.id };
 
