@@ -48,7 +48,8 @@ router.post('/check-postcode',
                 console.error('❌ Database error:', error);
                 return res.status(500).json({
                     success: false,
-                    message: 'Database error'
+                    message: 'Database error',
+                    details: error.message
                 });
             }
 
